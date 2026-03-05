@@ -1,75 +1,113 @@
 ######################################################
-# ENTRAINEMENT + SAUVEGARDE OLIVETTI FACES AUTOENCODER 
-# Output: sauvegarde du modèle entraîné
+# TEST PIPELINE OLIVETTI AUTOENCODER
+# Output: encodage + reconstruction + visualisation
 ######################################################
 
-# train_olivetti_autoencoder.py
+"""
+Test the full AutoEncoder pipeline on the Olivetti Faces dataset.
+
+This script demonstrates how to use a trained AutoEncoder model to:
+
+1. Load the trained model from disk
+2. Encode face images into latent vectors
+3. Decode latent vectors into reconstructed images
+4. Visualize the original and reconstructed images
+
+The goal is to verify that the trained model correctly compresses and
+reconstructs face images using its latent representation.
+
+Notes
+-----
+Dataset characteristics:
+
+- Dataset: Olivetti Faces
+- Number of images: 400
+- Image size: 64 x 64
+- Channels: 1 (grayscale)
+
+Pipeline steps:
+
+1. Load trained model checkpoint
+2. Select a batch of test images
+3. Encode images into latent vectors and display 
+4. Decode latent vectors into reconstructed images
+5. Display original vs reconstructed images
+
+Tensor shapes involved:
+
+- Input images: (batch_size, 1, 64, 64)
+- Latent vectors: (batch_size, latent_dim)
+- Reconstructed images: (batch_size, 1, 64, 64)
+
+Examples
+--------
+Run the test script:
+
+>>> python3 test_olivetti_pipeline.py
+
+Expected output:
+
+- Printed latent vector shape, type and constitution 
+- Visualization comparing original and reconstructed faces
+"""
+
+# test_olivetti_pipeline.py
 
 import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader, TensorDataset
+import matplotlib.pyplot as plt
 from sklearn.datasets import fetch_olivetti_faces
-from FINAL_model_architecture import AutoEncoder
+from FINAL_latent_interface_olivetti import load_model, encode_image, decode_latent
+
 
 # ======================
-# Paramètres
+# Charger modèle
 # ======================
 
-LATENT_DIM = 32
-BATCH_SIZE = 32
-EPOCHS = 50
-MODEL_PATH = "autoencoder_olivetti.pth"
+model, latent_dim = load_model("autoencoder_olivetti.pth")
+print("Latent dim =", latent_dim)
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # ======================
-# Dataset
+# Charger images
 # ======================
 
-data = fetch_olivetti_faces(shuffle=True, random_state=42)
+data = fetch_olivetti_faces(shuffle=True, random_state=42)  # 42 pour fixer le générateur aléatoire
 images = torch.tensor(data.images, dtype=torch.float32).unsqueeze(1)
 
-dataset = TensorDataset(images, images)
-loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
+sample_imgs = images[8:16]
+
 
 # ======================
-# Modèle
+# ENCODE
 # ======================
 
-model = AutoEncoder(LATENT_DIM).to(device)
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-criterion = nn.MSELoss()
+latent_vectors = encode_image(model, sample_imgs)
+print("Shape latent:", latent_vectors.shape)
+print(type(latent_vectors))
+print(latent_vectors)
+
 
 # ======================
-# Entraînement
+# DECODE
 # ======================
 
-for epoch in range(EPOCHS):
+reconstructed = decode_latent(model, latent_vectors)
+reconstructed = reconstructed.squeeze(1)
 
-    model.train()
-    running_loss = 0
-
-    for x, _ in loader:
-
-        x = x.to(device)
-
-        optimizer.zero_grad()
-        x_recon, _ = model(x)
-        loss = criterion(x_recon, x)
-        loss.backward()
-        optimizer.step()
-
-        running_loss += loss.item()
-
-    print(f"Epoch {epoch+1}/{EPOCHS} - Loss: {running_loss/len(loader):.6f}")
 
 # ======================
-# Sauvegarde
+# VISUALISATION
 # ======================
 
-torch.save({
-    "model_state_dict": model.state_dict(),
-    "latent_dim": LATENT_DIM
-}, MODEL_PATH)
+fig, axes = plt.subplots(2, 8, figsize=(16, 4))
 
-print("Modèle sauvegardé.")
+for i in range(8):
+    axes[0, i].imshow(sample_imgs[i].squeeze(0), cmap='gray')
+    axes[0, i].axis('off')
+    axes[1, i].imshow(reconstructed[i], cmap='gray')
+    axes[1, i].axis('off')
+
+axes[0, 0].set_title("Original")
+axes[1, 0].set_title("Decoded")
+
+plt.show()
