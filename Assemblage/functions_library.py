@@ -289,9 +289,10 @@ def fusion(matrice):
 def mutation(vecteur, nb_variants, taux_mutation, niveau_mutation):
     vecteurs_mutes=[]
     for i in range (nb_variants):
+        vecteur = vecteur.squeeze()
         vect_mutation=vecteur.copy()
         mute=np.random.rand(len(vecteur)) #variable aléatoire entre 0 et 1, elles representes les valeurs qui seront mutés si < taux de mutation
-        bruit=np.random.normal(0,niveau_mutation, len(vecteur))#petite variable representant la mutation entre 0 et niveau de mutation 
+        bruit=np.random.normal(0,niveau_mutation, len(vecteur))#petite variable representant la mutation entre 0 et niveau de mutation
         vect_mutation[mute < taux_mutation] += bruit[mute < taux_mutation] #on ajoute la mutation a la valeur de l'indice où survient une mutation
         vecteurs_mutes.append(vect_mutation)#On crée une liste de vecteur mutés
     return np.array(vecteurs_mutes)
