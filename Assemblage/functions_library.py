@@ -57,15 +57,21 @@ class AutoEncoder(nn.Module):
         super().__init__()
 
         self.encoder = nn.Sequential(
-            nn.Conv2d(1, 16, 3, stride=2, padding=1),
+            nn.Conv2d(1, 16, 3, stride=1, padding=1),
             nn.ReLU(),
-            nn.Conv2d(16, 32, 3, stride=2, padding=1),
+            nn.MaxPool2d(2),  # 64x64 -> 32x32
+
+            nn.Conv2d(16, 32, 3, stride=1, padding=1),
             nn.ReLU(),
-            nn.Conv2d(32, 64, 3, stride=2, padding=1),
+            nn.MaxPool2d(2),  # 32x32 -> 16x16
+    
+            nn.Conv2d(32, 64, 3, stride=1, padding=1),
             nn.ReLU(),
+            nn.MaxPool2d(2),  # 16x16 -> 8x8
+    
             nn.Flatten(),
-            nn.Linear(64 * 8 * 8, latent_dim)
-        )
+            nn.Linear(64*8*8, latent_dim)
+            )
 
         self.decoder_fc = nn.Linear(latent_dim, 64 * 8 * 8)
 
