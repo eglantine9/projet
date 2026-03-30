@@ -1,4 +1,4 @@
-#Projet Developpement logiciel :
+# Projet Developpement logiciel : Nathanael Pons, Axel Mondesir, Ambre Lesurtel, Skander Zouhir, Eglantine Salomé
 
 ## Présentation :
 L’objectif de ce logiciel est de produire le portrait robot d’une personne. Pour faire cela, l’utilisateur sera mis face à 10 images sur lesquelles il pourra agir. L’utilisateur pourra réaliser toutes les actions qu’il souhaite jusqu’à atteindre un résultats le satisfaisant.
