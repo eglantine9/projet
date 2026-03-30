@@ -48,9 +48,9 @@ POLICE_ICONE = ("SF Pro Text", 22)
 RAYON_COIN = 12
 
 model, latent_dim = load_model("autoencoder_olivetti.pth")
-VARIANT_NUMBER = 9
-MUTATION_RATE = 0.2
-MUTATION_LEVEL = 2
+VARIANT_NUMBER_DEFAUT = 9
+MUTATION_RATE_DEFAUT = 0.2
+MUTATION_LEVEL_DEFAUT = 2
 
 
 # =============================================================================
@@ -89,11 +89,10 @@ class Application(tk.Tk):
         self.configure(bg=FOND_PRINCIPAL)
         self.resizable(False, False)
 
-        # Données
-        self.images_echantillon = []
-        self.indices_selectionnes = []
-        self.images_fusionnees = []
-        self.indices_resultats_selectionnes = []
+        # Paramètres de fusion (modifiables via Réglages)
+        self.variant_number = VARIANT_NUMBER_DEFAUT
+        self.mutation_rate = MUTATION_RATE_DEFAUT
+        self.mutation_level = MUTATION_LEVEL_DEFAUT
 
         # Structure : sidebar + zone principale
         self.cadre_racine = tk.Frame(self, bg=FOND_PRINCIPAL)
@@ -105,14 +104,13 @@ class Application(tk.Tk):
         self.zone_contenu = tk.Frame(self.cadre_racine, bg=FOND_PRINCIPAL)
         self.zone_contenu.pack(side="left", fill="both", expand=True)
 
-        # Écrans empilés
-        self.ecrans = {}
-        for Classe in (EcranAccueil, EcranSelection, EcranResultat):
-            ecran = Classe(parent=self.zone_contenu, controleur=self)
-            self.ecrans[Classe.__name__] = ecran
-            ecran.place(relwidth=1, relheight=1)
+        # Pile de navigation
+        self.pile_ecrans = []
 
-        self.afficher_ecran("EcranAccueil")
+        # Écran d'accueil
+        self.ecran_accueil = EcranAccueil(parent=self.zone_contenu, controleur=self)
+        self.ecran_accueil.place(relwidth=1, relheight=1)
+        self.ecran_accueil.tkraise()
 
     def _creer_sidebar(self):
         """Barre latérale avec icônes vectorielles."""
@@ -206,42 +204,60 @@ class Application(tk.Tk):
             widget.bind("<Leave>", sortir)
             widget.bind("<Button-1>", lambda e, c=commande: c())
 
-    def afficher_ecran(self, nom):
-        ecran = self.ecrans[nom]
+    def pousser_ecran(self, images):
+        """Crée un nouvel Ecran avec les images données et l'empile."""
+        ecran = Ecran(parent=self.zone_contenu, controleur=self, images=images)
+        ecran.place(relwidth=1, relheight=1)
+        self.pile_ecrans.append(ecran)
         ecran.tkraise()
-        if hasattr(ecran, "lors_affichage"):
-            ecran.lors_affichage()
+        ecran.lors_affichage()
+
+    def retour_ecran(self):
+        """Retourne à l'écran précédent dans la pile."""
+        if self.pile_ecrans:
+            ecran = self.pile_ecrans.pop()
+            ecran.destroy()
+        if self.pile_ecrans:
+            self.pile_ecrans[-1].tkraise()
+        else:
+            self.ecran_accueil.tkraise()
+
+    def retour_accueil(self):
+        """Retourne à l'écran d'accueil en vidant la pile."""
+        while self.pile_ecrans:
+            self.pile_ecrans.pop().destroy()
+        self.ecran_accueil.tkraise()
 
     def charger_echantillon(self):
         """Charge 10 visages depuis le dataset Olivetti."""
         donnees = fetch_olivetti_faces(shuffle=True, random_state=42)
         indices = np.random.RandomState(0).choice(len(donnees.images), size=10, replace=False)
-        self.images_echantillon = [donnees.images[i] for i in indices]
+        images = [donnees.images[i] for i in indices]
+        self.pousser_ecran(images)
 
-    def lancer_fusion(self):
-        """
-        Point d'entrée de la fusion.
-        """
-        images_selectionnes = [self.images_echantillon[k] for k in self.indices_selectionnes]
-        if len(self.indices_selectionnes) == 1 :
-            images = torch.tensor(images_selectionnes, dtype=torch.float32).unsqueeze(1)
+    def lancer_fusion(self, images_source, indices_selectionnes):
+        """Fusionne les images sélectionnées et pousse un nouvel écran."""
+        images_selectionnees = [images_source[k] for k in indices_selectionnes]
+        if len(indices_selectionnes) == 1:
+            images = torch.tensor(images_selectionnees, dtype=torch.float32).unsqueeze(1)
             latent_vectors = encode_image(model, images)
-            mutation_vector = mutation(latent_vectors, VARIANT_NUMBER+1, MUTATION_RATE, MUTATION_LEVEL)
+            mutation_vector = mutation(latent_vectors, self.variant_number + 1, self.mutation_rate, self.mutation_level)
             results = decode_latent(model, mutation_vector).squeeze(1)
-        else :
-            images = torch.tensor(images_selectionnes, dtype=torch.float32).unsqueeze(1)
+        else:
+            images = torch.tensor(images_selectionnees, dtype=torch.float32).unsqueeze(1)
             latent_vectors = encode_image(model, images)
             fusion_vector = fusion(latent_vectors)
-            fusion_result= decode_latent(model, fusion_vector).squeeze(1)
-            mutation_vector = mutation(fusion_vector,VARIANT_NUMBER, MUTATION_RATE, MUTATION_LEVEL)
+            fusion_result = decode_latent(model, fusion_vector).squeeze(1)
+            mutation_vector = mutation(fusion_vector, self.variant_number, self.mutation_rate, self.mutation_level)
             mutation_results = decode_latent(model, mutation_vector).squeeze(1)
             results = torch.cat([fusion_result, mutation_results], dim=0)
 
-        self.images_fusionnees = results.detach().cpu().numpy()
+        images_resultat = results.detach().cpu().numpy()
+        self.pousser_ecran(list(images_resultat))
 
-    def sauvegarder_resultats(self):
+    def sauvegarder_images(self, images, indices):
         """Sauvegarde les images sélectionnées en PNG + archive ZIP."""
-        if not self.indices_resultats_selectionnes:
+        if not indices:
             messagebox.showwarning("Aucune sélection", "Sélectionnez au moins une image.")
             return
 
@@ -254,8 +270,8 @@ class Application(tk.Tk):
         os.makedirs(dossier_sortie, exist_ok=True)
 
         chemins = []
-        for idx in self.indices_resultats_selectionnes:
-            img = (self.images_fusionnees[idx] * 255).astype(np.uint8)
+        for idx in indices:
+            img = (images[idx] * 255).astype(np.uint8)
             pil = Image.fromarray(img, mode="L")
             chemin = os.path.join(dossier_sortie, f"resultat_{idx + 1}.png")
             pil.save(chemin)
@@ -275,7 +291,127 @@ class Application(tk.Tk):
         messagebox.showinfo("Wiki", "Fonctionnalité à venir.")
 
     def _ouvrir_parametres(self):
-        messagebox.showinfo("Réglages", "Fonctionnalité à venir.")
+        """Ouvre la fenêtre de réglages pour les paramètres de fusion."""
+        fenetre = tk.Toplevel(self)
+        fenetre.title("Réglages")
+        fenetre.configure(bg=FOND_PRINCIPAL)
+        fenetre.resizable(False, False)
+        fenetre.transient(self)
+        fenetre.grab_set()
+
+        # Titre
+        tk.Label(
+            fenetre, text="Réglages",
+            font=("SF Pro Display", 18, "bold"),
+            fg=TEXTE_PRINCIPAL, bg=FOND_PRINCIPAL
+        ).pack(pady=(14, 2))
+
+        tk.Label(
+            fenetre, text="Paramètres de l'algorithme génétique",
+            font=POLICE_PETIT, fg=TEXTE_SECONDAIRE, bg=FOND_PRINCIPAL
+        ).pack(pady=(0, 10))
+
+        tk.Frame(fenetre, height=1, bg=SEPARATEUR).pack(fill="x", padx=24)
+
+        cadre_params = tk.Frame(fenetre, bg=FOND_PRINCIPAL)
+        cadre_params.pack(fill="x", padx=24, pady=8)
+        cadre_params.columnconfigure(1, weight=1)
+
+        # --- Nombre de variantes ---
+        var_variants = tk.IntVar(value=self.variant_number)
+        tk.Label(
+            cadre_params, text="Variantes",
+            font=POLICE_SOUS_TITRE, fg=TEXTE_PRINCIPAL, bg=FOND_PRINCIPAL
+        ).grid(row=0, column=0, sticky="w", pady=(6, 0))
+        label_v_val = tk.Label(
+            cadre_params, text=str(self.variant_number),
+            font=("SF Pro Text", 12, "bold"), fg=ACCENT, bg=FOND_PRINCIPAL, width=3
+        )
+        label_v_val.grid(row=0, column=2, sticky="e", pady=(6, 0))
+        tk.Scale(
+            cadre_params, from_=1, to=20, orient="horizontal",
+            variable=var_variants, showvalue=False,
+            bg=FOND_PRINCIPAL, fg=ACCENT, troughcolor=BOUTON_VERRE,
+            highlightthickness=0, length=220,
+            command=lambda val: label_v_val.config(text=str(int(float(val))))
+        ).grid(row=0, column=1, sticky="ew", padx=8, pady=(6, 0))
+
+        # --- Taux de mutation ---
+        var_rate = tk.DoubleVar(value=self.mutation_rate)
+        tk.Label(
+            cadre_params, text="Taux mutation",
+            font=POLICE_SOUS_TITRE, fg=TEXTE_PRINCIPAL, bg=FOND_PRINCIPAL
+        ).grid(row=1, column=0, sticky="w", pady=(6, 0))
+        label_r_val = tk.Label(
+            cadre_params, text=f"{self.mutation_rate:.2f}",
+            font=("SF Pro Text", 12, "bold"), fg=ACCENT, bg=FOND_PRINCIPAL, width=3
+        )
+        label_r_val.grid(row=1, column=2, sticky="e", pady=(6, 0))
+        tk.Scale(
+            cadre_params, from_=0.0, to=1.0, resolution=0.05, orient="horizontal",
+            variable=var_rate, showvalue=False,
+            bg=FOND_PRINCIPAL, fg=ACCENT, troughcolor=BOUTON_VERRE,
+            highlightthickness=0, length=220,
+            command=lambda val: label_r_val.config(text=f"{float(val):.2f}")
+        ).grid(row=1, column=1, sticky="ew", padx=8, pady=(6, 0))
+
+        # --- Niveau de mutation ---
+        var_level = tk.IntVar(value=self.mutation_level)
+        tk.Label(
+            cadre_params, text="Niveau mutation",
+            font=POLICE_SOUS_TITRE, fg=TEXTE_PRINCIPAL, bg=FOND_PRINCIPAL
+        ).grid(row=2, column=0, sticky="w", pady=(6, 0))
+        label_l_val = tk.Label(
+            cadre_params, text=str(self.mutation_level),
+            font=("SF Pro Text", 12, "bold"), fg=ACCENT, bg=FOND_PRINCIPAL, width=3
+        )
+        label_l_val.grid(row=2, column=2, sticky="e", pady=(6, 0))
+        tk.Scale(
+            cadre_params, from_=1, to=10, orient="horizontal",
+            variable=var_level, showvalue=False,
+            bg=FOND_PRINCIPAL, fg=ACCENT, troughcolor=BOUTON_VERRE,
+            highlightthickness=0, length=220,
+            command=lambda val: label_l_val.config(text=str(int(float(val))))
+        ).grid(row=2, column=1, sticky="ew", padx=8, pady=(6, 0))
+
+        tk.Frame(fenetre, height=1, bg=SEPARATEUR).pack(fill="x", padx=24, pady=(10, 0))
+
+        # Boutons
+        cadre_boutons = tk.Frame(fenetre, bg=FOND_PRINCIPAL)
+        cadre_boutons.pack(fill="x", padx=24, pady=10)
+
+        def reinitialiser():
+            var_variants.set(VARIANT_NUMBER_DEFAUT)
+            var_rate.set(MUTATION_RATE_DEFAUT)
+            var_level.set(MUTATION_LEVEL_DEFAUT)
+            label_v_val.config(text=str(VARIANT_NUMBER_DEFAUT))
+            label_r_val.config(text=f"{MUTATION_RATE_DEFAUT:.2f}")
+            label_l_val.config(text=str(MUTATION_LEVEL_DEFAUT))
+
+        def appliquer():
+            self.variant_number = var_variants.get()
+            self.mutation_rate = var_rate.get()
+            self.mutation_level = var_level.get()
+            fenetre.destroy()
+
+        BoutonVerre(
+            cadre_boutons, texte="Réinitialiser",
+            commande=reinitialiser, largeur=130, hauteur=32
+        ).pack(side="left")
+
+        BoutonVerre(
+            cadre_boutons, texte="Appliquer",
+            commande=appliquer, largeur=130, hauteur=32,
+            est_accent=True
+        ).pack(side="right")
+
+        # Taille auto et centrage
+        fenetre.update_idletasks()
+        w = fenetre.winfo_reqwidth()
+        h = fenetre.winfo_reqheight()
+        x = self.winfo_x() + (self.winfo_width() - w) // 2
+        y = self.winfo_y() + (self.winfo_height() - h) // 2
+        fenetre.geometry(f"{w}x{h}+{x}+{y}")
 
 
 # =============================================================================
@@ -433,25 +569,29 @@ class EcranAccueil(tk.Frame):
 
     def _demarrer(self):
         self.controleur.charger_echantillon()
-        self.controleur.afficher_ecran("EcranSelection")
 
 
 # =============================================================================
-# US#C / US#D / US#E / US#F — Sélection
+# Écran unifié (sélection + résultats)
 # =============================================================================
 
-class EcranSelection(tk.Frame):
-    def __init__(self, parent, controleur):
+class Ecran(tk.Frame):
+    """Écran générique affichant une grille d'images avec Retour, Fusionner et Sauvegarder."""
+
+    def __init__(self, parent, controleur, images):
         super().__init__(parent, bg=FOND_PRINCIPAL)
         self.controleur = controleur
+        self.images = images
         self.cartes = []
+        self.indices_selectionnes = []
 
         # En-tête
         entete = tk.Frame(self, bg=FOND_PRINCIPAL)
         entete.pack(fill="x", padx=36, pady=(28, 0))
 
+        niveau = len(controleur.pile_ecrans) + 1
         tk.Label(
-            entete, text="Sélection",
+            entete, text=f"Étape {niveau}",
             font=POLICE_TITRE, fg=TEXTE_PRINCIPAL, bg=FOND_PRINCIPAL
         ).pack(side="left")
 
@@ -461,14 +601,12 @@ class EcranSelection(tk.Frame):
         )
         self.label_compteur.pack(side="right")
 
-        # Sous-titre
         tk.Label(
-            self, text="Choisissez les visages à fusionner",
+            self, text="Sélectionnez des images puis fusionnez ou sauvegardez",
             font=POLICE_SOUS_TITRE, fg=TEXTE_SECONDAIRE,
             bg=FOND_PRINCIPAL, anchor="w"
         ).pack(fill="x", padx=36, pady=(4, 16))
 
-        # Séparateur
         tk.Frame(self, height=1, bg=SEPARATEUR).pack(fill="x", padx=36)
 
         # Grille
@@ -485,12 +623,17 @@ class EcranSelection(tk.Frame):
         ).pack(side="left")
 
         BoutonVerre(
+            barre, texte="Sauvegarder", commande=self._sauvegarder,
+            largeur=150, hauteur=38
+        ).pack(side="right", padx=(8, 0))
+
+        BoutonVerre(
             barre, texte="Fusionner →", commande=self._fusionner,
-            largeur=160, hauteur=38, est_accent=True
+            largeur=150, hauteur=38, est_accent=True
         ).pack(side="right")
 
     def lors_affichage(self):
-        self.controleur.indices_selectionnes.clear()
+        self.indices_selectionnes.clear()
         self._construire_grille()
         self._maj_compteur()
 
@@ -498,7 +641,7 @@ class EcranSelection(tk.Frame):
         for w in self.cadre_grille.winfo_children():
             w.destroy()
         self.cartes.clear()
-        for i, img in enumerate(self.controleur.images_echantillon):
+        for i, img in enumerate(self.images):
             carte = CarteImage(self.cadre_grille, img, i, self._clic_carte)
             carte.grid(
                 row=i // COLONNES_GRILLE, column=i % COLONNES_GRILLE,
@@ -507,112 +650,27 @@ class EcranSelection(tk.Frame):
             self.cartes.append(carte)
 
     def _clic_carte(self, indice, selectionnee):
-        if selectionnee and indice not in self.controleur.indices_selectionnes:
-            self.controleur.indices_selectionnes.append(indice)
-        elif not selectionnee and indice in self.controleur.indices_selectionnes:
-            self.controleur.indices_selectionnes.remove(indice)
+        if selectionnee and indice not in self.indices_selectionnes:
+            self.indices_selectionnes.append(indice)
+        elif not selectionnee and indice in self.indices_selectionnes:
+            self.indices_selectionnes.remove(indice)
         self._maj_compteur()
 
     def _maj_compteur(self):
-        n = len(self.controleur.indices_selectionnes)
+        n = len(self.indices_selectionnes)
         self.label_compteur.config(text=f"{n} sélectionnée(s)")
 
     def _fusionner(self):
-        if len(self.controleur.indices_selectionnes) < 1:
+        if len(self.indices_selectionnes) < 1:
             messagebox.showwarning("Sélection", "Sélectionnez au moins une image.")
             return
-        self.controleur.lancer_fusion()
-        self.controleur.afficher_ecran("EcranResultat")
-
-    def _retour(self):
-        self.controleur.afficher_ecran("EcranAccueil")
-
-
-# =============================================================================
-# US#G / US#H — Résultats
-# =============================================================================
-
-class EcranResultat(tk.Frame):
-    def __init__(self, parent, controleur):
-        super().__init__(parent, bg=FOND_PRINCIPAL)
-        self.controleur = controleur
-        self.cartes_res = []
-
-        # En-tête
-        entete = tk.Frame(self, bg=FOND_PRINCIPAL)
-        entete.pack(fill="x", padx=36, pady=(28, 0))
-
-        tk.Label(
-            entete, text="Résultats",
-            font=POLICE_TITRE, fg=TEXTE_PRINCIPAL, bg=FOND_PRINCIPAL
-        ).pack(side="left")
-
-        self.label_compteur = tk.Label(
-            entete, text="0 sélectionnée(s)",
-            font=POLICE_PETIT, fg=TEXTE_SECONDAIRE, bg=FOND_PRINCIPAL
-        )
-        self.label_compteur.pack(side="right")
-
-        tk.Label(
-            self, text="Sélectionnez les images à sauvegarder",
-            font=POLICE_SOUS_TITRE, fg=TEXTE_SECONDAIRE,
-            bg=FOND_PRINCIPAL, anchor="w"
-        ).pack(fill="x", padx=36, pady=(4, 16))
-
-        tk.Frame(self, height=1, bg=SEPARATEUR).pack(fill="x", padx=36)
-
-        # Grille
-        self.cadre_grille = tk.Frame(self, bg=FOND_PRINCIPAL)
-        self.cadre_grille.pack(expand=True, pady=16)
-
-        # Barre d'actions
-        barre = tk.Frame(self, bg=FOND_PRINCIPAL)
-        barre.pack(fill="x", padx=36, pady=(0, 24))
-
-        BoutonVerre(
-            barre, texte="↻ Recommencer", commande=self._recommencer,
-            largeur=160, hauteur=38
-        ).pack(side="left")
-
-        BoutonVerre(
-            barre, texte="Sauvegarder et terminer", commande=self._sauvegarder,
-            largeur=220, hauteur=38, est_accent=True
-        ).pack(side="right")
-
-    def lors_affichage(self):
-        self.controleur.indices_resultats_selectionnes.clear()
-        self._construire_grille()
-        self._maj_compteur()
-
-    def _construire_grille(self):
-        for w in self.cadre_grille.winfo_children():
-            w.destroy()
-        self.cartes_res.clear()
-        for i, img in enumerate(self.controleur.images_fusionnees):
-            carte = CarteImage(self.cadre_grille, img, i, self._clic_resultat)
-            carte.grid(
-                row=i // COLONNES_GRILLE, column=i % COLONNES_GRILLE,
-                padx=10, pady=10
-            )
-            self.cartes_res.append(carte)
-
-    def _clic_resultat(self, indice, selectionnee):
-        if selectionnee and indice not in self.controleur.indices_resultats_selectionnes:
-            self.controleur.indices_resultats_selectionnes.append(indice)
-        elif not selectionnee and indice in self.controleur.indices_resultats_selectionnes:
-            self.controleur.indices_resultats_selectionnes.remove(indice)
-        self._maj_compteur()
-
-    def _maj_compteur(self):
-        n = len(self.controleur.indices_resultats_selectionnes)
-        self.label_compteur.config(text=f"{n} sélectionnée(s)")
+        self.controleur.lancer_fusion(self.images, self.indices_selectionnes)
 
     def _sauvegarder(self):
-        self.controleur.sauvegarder_resultats()
+        self.controleur.sauvegarder_images(self.images, self.indices_selectionnes)
 
-    def _recommencer(self):
-        self.controleur.charger_echantillon()
-        self.controleur.afficher_ecran("EcranSelection")
+    def _retour(self):
+        self.controleur.retour_ecran()
 
 
 # =============================================================================
