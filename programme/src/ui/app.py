@@ -265,13 +265,7 @@ class Application(tk.Tk):
             tab["home_screen"].tkraise()
             self.tab_bar.rename(self.active_tab_idx, tab["title"])
 
-    def go_home(self):
-        tab = self.tabs[self.active_tab_idx]
-        while tab["screen_stack"]:
-            tab["screen_stack"].pop().destroy()
-        if tab["home_screen"]:
-            tab["home_screen"].tkraise()
-        self.tab_bar.rename(self.active_tab_idx, tab["title"])
+
 
     # ── Business Logic ───────────────────────────────────────────────────
 
