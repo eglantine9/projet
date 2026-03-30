@@ -1,6 +1,27 @@
 import numpy as np
 
 def fusion (matrice,pond): #tableau de vecteurs lignes et vecteur de pondération dans le même ordre que les images
+    """
+    merge different weighted vectors together
+
+    Parameters
+    ----------
+    matrice : numpy.array
+        matrice of all the vectors, number of row correspond to the number of vectors to fuse
+    pond : numpy.array or list
+        vector containing to the weights of each vector in the same order as the matrice
+
+    Returns
+    -------
+    new_image : numpy.array
+        New vector computed by the weighted merge
+
+    Examples
+    --------
+    >>> fusion(np.array([[0.5,0.8,0.2,0.6,0.7],[0.4,0.7,0.1,0.5,0.8]]), (1,2))
+    [0.43333333 0.73333333 0.13333333 0.53333333 0.76666667]
+    """
+
     new_image=[]
     div = sum(pond)
     for col in range(0,np.shape(matrice)[1]): #Parcour toutes les colonnes du tableau
@@ -11,7 +32,39 @@ def fusion (matrice,pond): #tableau de vecteurs lignes et vecteur de pondératio
     return new_image
 #On fait la moyene de chaque colonnes de la matrice pour ne former qu'un seul vecteur
 
+
+
 def mutation(vecteur, nb_variants, taux_mutation, niveau_mutation):
+    """
+    produce multuple variations from an initial vector
+
+    Parameters
+    ----------
+    vecteur : numpy.array
+        Initial vector to produce variations from
+
+    nb_variants : int
+        Number of variations to produce
+
+    taux_mutation : int or float
+        Amount of mutations to apply
+
+    niveau_mutation : int or float
+        Intensity of mutations to apply
+
+    Returns
+    -------
+    np.array(vecteurs_mutes)
+        vectors produced by the random mutations
+
+    Examples
+    --------
+    >>> mutation(np.array([0.4,0.3,0.9,0.8,0.2,0.1,0.4]), nb_variants=3, taux_mutation=0.4, niveau_mutation=0.1)
+    [[0.42754856 0.26299389 0.9        0.8        0.2        0.1       0.3276892 ]
+    [0.41722165 0.3460928  0.85578323 0.8        0.19935116 0.19189771     0.4       ]
+    [0.4        0.3        0.9507284  0.8        0.2        0.15455378     0.27444405]]
+    """
+
     vecteurs_mutes=[]
     for i in range (nb_variants):
         vect_mutation=vecteur.copy()
@@ -32,8 +85,11 @@ def mutation(vecteur, nb_variants, taux_mutation, niveau_mutation):
 #test
 matrice=np.array([[0.5,0.8,0.2,0.6,0.7],
                  [0.4,0.7,0.1,0.5,0.8]])
+print("La matrice est de type :", type(matrice))
 
 vecteur=np.array([0.4,0.3,0.9,0.8,0.2,0.1,0.4])
+print("Le vecteur est de type :", type(vecteur))
+
 merge=fusion(matrice,(1,2))
 resultat = mutation(vecteur, nb_variants=3, taux_mutation=0.4, niveau_mutation=0.1)
 
