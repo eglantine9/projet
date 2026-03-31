@@ -1,26 +1,27 @@
 # Project 4BiM: Nathanael Pons, Axel Mondesir, Ambre Lesurtel, Skander Zouhir, Eglantine Salomé
 
 ## Introduction :
-This app aims to produce id picture of persons. To do so, the user will face 10 pictures on which he'll act. The user will be able to induce multiple actions on those pictures until he reachegi
-L’objectif de ce logiciel est de produire le portrait robot d’une personne. Pour faire cela, l’utilisateur sera mis face à 10 images sur lesquelles il pourra agir. L’utilisateur pourra réaliser toutes les actions qu’il souhaite jusqu’à atteindre un résultats le satisfaisant.
+The purpose of this software is to generate the portrait of a person. To do this, the user is presented with 10 images on which they can interact. The user can perform any actions they wish until they achieve a result that satisfies them.
 
 ## Installation :
 
-### Prérequis :
+### Prerequisites:
 
 
-## Utilisation :
-Au départ, l’utilisateur est face à 10 images. Il peut alors sélectionner celles qui lui semblent les plus ressemblantes à sa cible pour les fusionner et les muter. Un second round d’image lui sera alors présenté et ainsi de suite jusqu’à satisfaction.
-L’utilisateur peut également enregistrer ou importer des images ou recommencer.
-L’utilisateur peut aussi contrôler certains paramètres en modifiant les réglages. Toutes les fonctionnalités sont présentées dans la liste suivante :
+## Usage:
+Initially, the user is presented with 10 images. They can then select the ones that seem most similar to their target in order to merge and mutate them. A second round of images will then be presented, and so on until satisfaction is reached.
 
-### Fonctionnalités :
-* #### Selectionner : En cliquant sur l’image, l’utilisateur la sélectionne. Les images sélectionnées sont signalées par un cadre rouge.
-* #### Fusionner: En cliquant sur le bouton « fusionner et muter », l’utilisateur valide les images sélectionnées. Le logiciel fusionne toutes les images, présente en haut à gauche le résultat de cette fusion et présente 9 autres images issues ce cette fusion mutée.
-* #### Sauvegarder: En cliquant sur « enregistrer », le client sauvegarde l’image sélectionnée sur sa machine.
-* #### Retour : Revient au lot d'images précédentes.
+The user can also save or import images, or restart the process.
 
-### Réglages :
-* #### Taux de mutation : Quantités de zones mutées
-* #### Intensité des mutations : Intensité des mutations
-* #### Nombre d’images : Nombre d’image présentées à l’utilisateur
+The user can also control certain parameters by adjusting the settings. All features are listed below:
+
+### Features:
+* #### Select: By clicking on an image, the user selects it. Selected images are indicated by a red border.
+* #### Merge: By clicking on the “merge and mutate” button, the user confirms the selected images. The software merges all selected images, displays the result of this merge in the top-left corner, and presents 9 additional images generated from mutated variations of this merge.
+* #### Save: By clicking “save,” the user stores the selected image on their device.
+* #### Back : Return to the previous set of images.
+
+### Settings:
+* #### Mutation rate: Amount of mutated regions
+* #### Mutation intensity: Strength of the mutations
+* #### Number of images: Number of images presented to the user
