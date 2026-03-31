@@ -1,7 +1,7 @@
 # Project 4BiM: Nathanael Pons, Axel Mondesir, Ambre Lesurtel, Skander Zouhir, Eglantine Salomé
 
 ## Introduction :
-This app aims to produce id picture of persons. To do so, the user will face 10 pictures on which he'll act. The user will be able to induce multiple actions on those pictures until he reache
+This app aims to produce id picture of persons. To do so, the user will face 10 pictures on which he'll act. The user will be able to induce multiple actions on those pictures until he reachegi
 L’objectif de ce logiciel est de produire le portrait robot d’une personne. Pour faire cela, l’utilisateur sera mis face à 10 images sur lesquelles il pourra agir. L’utilisateur pourra réaliser toutes les actions qu’il souhaite jusqu’à atteindre un résultats le satisfaisant.
 
 ## Installation :
