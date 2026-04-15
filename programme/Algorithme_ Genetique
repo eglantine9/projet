@@ -1,0 +1,80 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from PIL import Image
+from pandas import *
+import easygui
+
+def fusion (matrice):
+    new_image=[]
+    new_image=np.mean(matrice,axis=0) #fais la moyenne des lignes de la matrice 
+    return new_image
+#On fait la moyene de chaque ligne de la matrice pour ne former qu'un seul vecteur
+
+def fusion (list_matrice):
+    new_image=[]
+    for m in list_matrice:
+        for i in m:
+            for j in m:   
+                new_image=np.mean(list_matrice[m][i][j]) #fais la moyenne des lignes de la matrice 
+    return new_image
+#On fait la moyene de chaque ligne de la matrice pour ne former qu'un seul vecteur
+
+def mutation(vecteur, nb_variants, taux_mutation, niveau_mutation):
+    vecteurs_mutes=[]
+    for i in range (nb_variants):
+        vect_mutation=vecteur.copy()
+        mute=np.random.rand(len(vecteur)) #variable aléatoire entre 0 et 1, elles representes les valeurs qui seront mutés si < taux de mutation
+        bruit=np.random.normal(0,niveau_mutation, len(vecteur))#petite variable representant la mutation entre 0 et niveau de mutation 
+        for i in range(len(vecteur)):
+            if mute[i]<taux_mutation:
+                vect_mutation[i]+=bruit[i] #on ajoute la mutation a la valeur de l'indice où survient une mutation
+            else:
+                i=i+1
+        vecteurs_mutes.append(vect_mutation)#On crée une liste de vecteur mutés
+    return np.array(vecteurs_mutes)
+#Mute est une liste de meme taille que le vecteur, les valeurs de chacunes de ses cases seront générés aléatoirement et comprises entre 0 et 1 
+#bruit est un vecteur ou toute les valeurs sont des valeurs de mutations( proche de 0 car suit une loi normale)
+#Pour les valeurs de Mute qui seront inférieur au taux de mutation, on garde l'indice, cet indice sera celui qui dans le vect_mutation permettra de muté une valeur précise avec l'ajout du bruit[i]
+
+
+def image():
+    myimg = Image.open(easygui.fileopenbox()).convert("RGB")
+    #myimg.show()
+    img=np.array(myimg)
+    return img
+
+def grey_scale_img(img):
+    temp_img = img.copy()
+    temp_img = img[:,:,0]*0.2126+img[:,:,1]*0.7152+img[:,:,2]*0.0722
+    temp_img = temp_img.astype(np.uint8)
+    plt.imshow(temp_img,cmap='gray', vmin=0, vmax=255) ; 
+    plt.show()
+    if img.shape[:2] != (64,64):
+        image_pillow = Image.fromarray(temp_img)
+        nouvelle_taille = (64, 64) # 2. On définie la nouvelle taille
+        # 3. Redimensionnement avec filtre de haute qualité Lanczos
+        image_reduite = image_pillow.resize(nouvelle_taille, Image.Resampling.LANCZOS)
+       
+    else:
+        print("l'image est a la bonne taille)")
+        image_reduite=temp_img
+
+    plt.imshow(image_reduite,cmap='gray', vmin=0, vmax=255)
+    plt.show()
+    # 4. Sauvegarder l'image
+    #image_reduite.save("image_64x64.jpg", quality=95)
+    return(image_reduite)
+
+
+
+matrice=#a compléter
+vecteur=#a compléter
+merge=fusion(matrice)
+resultat = mutation(vecteur, nb_variants=3, taux_mutation=0.4, niveau_mutation=0.1)
+
+#print("fusion:", merge)
+#print(" Vecteur:",vecteur)
+#print("\n resultat:",resultat)
+
+img=image()
+img_grey=grey_scale_img(img)
