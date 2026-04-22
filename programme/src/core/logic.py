@@ -28,7 +28,9 @@ def encode_images(model, images_tensor):
     """
     with torch.no_grad():
         images_tensor = images_tensor.to(device)
-        z = model.encode(images_tensor)
+        mu, logvar = model.encode(images_tensor)
+        # Use the mean of the latent distribution as the latent vector
+        z = mu
     return z.cpu().numpy()
 
 def decode_latents(model, latent_numpy):
@@ -36,6 +38,7 @@ def decode_latents(model, latent_numpy):
     Decode latent vectors (NumPy) back into image tensors.
     """
     with torch.no_grad():
+        latent_numpy = np.atleast_2d(latent_numpy)
         z = torch.tensor(latent_numpy, dtype=torch.float32).to(device)
         x = model.decode(z)
     return x.cpu()

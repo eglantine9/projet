@@ -8,7 +8,7 @@ from PIL import Image
 
 import numpy as np
 import torch
-from sklearn.datasets import fetch_olivetti_faces
+import random
 
 # Core imports
 from ..core.logic import load_trained_model, encode_images, decode_latents, fuse_parents, mutate_vector
@@ -21,7 +21,7 @@ from .screens import HomeScreen, SettingsScreen, DocsScreen, MediaScreen, GridSc
 # Determine asset path relative to this file
 _UI_DIR = os.path.dirname(os.path.abspath(__file__))
 _SRC_DIR = os.path.dirname(_UI_DIR)
-_MODEL_PATH = os.path.join(_SRC_DIR, "assets", "model.pth")
+_MODEL_PATH = os.path.join(_SRC_DIR, "assets", "vae_celeba_final.pth")
 
 # Global model instance
 model, latent_dim = load_trained_model(_MODEL_PATH)
@@ -270,9 +270,39 @@ class Application(tk.Tk):
     # ── Business Logic ───────────────────────────────────────────────────
 
     def load_sample(self):
-        data = fetch_olivetti_faces(shuffle=True, random_state=42)
-        indices = np.random.RandomState(0).choice(len(data.images), size=10, replace=False)
-        dataset_images = [data.images[i] for i in indices]
+        celeba_dir = os.path.abspath(os.path.join(_SRC_DIR, "..", "..", "data", "celeba", "img_align_celeba"))
+        
+        try:
+            # We assume images are mostly .jpg in that directory
+            files = [f for f in os.listdir(celeba_dir) if f.endswith(".jpg")]
+        except FileNotFoundError:
+            messagebox.showerror("Error", "CelebA dataset not found. Please ensure it is in the data/celeba directory.")
+            return
+
+        if not files:
+            messagebox.showerror("Error", "CelebA dataset is empty.")
+            return
+
+        selected_files = np.random.choice(files, size=10, replace=False)
+        dataset_images = []
+        for file in selected_files:
+            path = os.path.join(celeba_dir, file)
+            img = Image.open(path)
+            
+            w, h = img.size
+            crop_size = 178
+            left = (w - crop_size) // 2
+            top = (h - crop_size) // 2
+            right = (w + crop_size) // 2
+            bottom = (h + crop_size) // 2
+            
+            img = img.crop((left, top, right, bottom))
+            img = img.resize((64, 64))
+            img = img.convert("L")
+            img_arr = np.array(img, dtype=np.float32) / 255.0
+            
+            dataset_images.append(img_arr)
+            
         custom_count = len(self.custom_photos)
         images = list(self.custom_photos) + dataset_images
         self.push_screen(images, custom_photo_count=custom_count)

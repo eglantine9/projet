@@ -50,5 +50,5 @@ FONT_SIDEBAR = ("SF Pro Text", 9)
 # =============================================================================
 
 DEFAULT_VARIANT_COUNT = 9
-DEFAULT_MUTATION_RATE = 0.2
-DEFAULT_MUTATION_LEVEL = 2
+DEFAULT_MUTATION_RATE = 0.10
+DEFAULT_MUTATION_LEVEL = 1
