@@ -29,14 +29,6 @@ def fusion (matrice):  #tableau de vecteurs lignes
     return new_image
 #On fait la moyene de chaque ligne de la matrice pour ne former qu'un seul vecteur
 
-def fusion (list_matrice):
-    new_image=[]
-    for m in list_matrice:
-        for i in m:
-            for j in m:   
-                new_image=np.mean(list_matrice[m][i][j]) #fais la moyenne des lignes de la matrice 
-    return new_image
-#On fait la moyene de chaque ligne de la matrice pour ne former qu'un seul vecteur
 
 def mutation(vecteur, nb_variants, taux_mutation, niveau_mutation):
     vecteurs_mutes=[]
