@@ -4,7 +4,26 @@ from PIL import Image
 from pandas import *
 import easygui
 
-def fusion (matrice):
+def fusion (matrice):  #tableau de vecteurs lignes
+    """
+    merge all vectors together with equal weight for each
+
+    Parameters
+    ----------
+    matrice : numpy.array
+        matrice of all vectors, number of row correspond to the number of vectors to fuse
+
+    Returns
+    ----------
+    new_image : numpy.array
+        New vector computed by the merge
+
+    Examples
+    ----------
+    >>>fusion(np.array([[0.5,0.8,0.2,0.6,0.7],[0.4,0.7,0.1,0.5,0.8]]))
+    [0.45,0.75,0.15,0.55,0.75]
+    """
+
     new_image=[]
     new_image=np.mean(matrice,axis=0) #fais la moyenne des lignes de la matrice 
     return new_image
