@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Algo_génétique module &#8212; Projet 4BIM portaits Groupe 5  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-Algo_genetique">
+<span id="algo-genetique-module"></span><h1>Algo_génétique module<a class="headerlink" href="#module-Algo_genetique" title="Permalink to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="Algo_genetique.fusion">
+<span class="sig-prename descclassname"><span class="pre">Algo_génétique.</span></span><span class="sig-name descname"><span class="pre">fusion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pond</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Algo_g%C3%A9n%C3%A9tique.html#fusion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Algo_genetique.fusion" title="Permalink to this definition">¶</a></dt>
+<dd><p>merge different weighted vectors together</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrice</strong> (<em>numpy.array</em>) – matrice of all the vectors, number of row correspond to the number of vectors to fuse</p></li>
+<li><p><strong>pond</strong> (<em>numpy.array</em><em> or </em><em>list</em>) – vector containing to the weights of each vector in the same order as the matrice</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>new_image</strong> – New vector computed by the weighted merge</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fusion</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.8</span><span class="p">,</span><span class="mf">0.2</span><span class="p">,</span><span class="mf">0.6</span><span class="p">,</span><span class="mf">0.7</span><span class="p">],[</span><span class="mf">0.4</span><span class="p">,</span><span class="mf">0.7</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.8</span><span class="p">]]),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="go">[0.43333333 0.73333333 0.13333333 0.53333333 0.76666667]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Algo_genetique.mutation">
+<span class="sig-prename descclassname"><span class="pre">Algo_génétique.</span></span><span class="sig-name descname"><span class="pre">mutation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vecteur</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_variants</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taux_mutation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niveau_mutation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/Algo_g%C3%A9n%C3%A9tique.html#mutation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Algo_genetique.mutation" title="Permalink to this definition">¶</a></dt>
+<dd><p>produce multuple variations from an initial vector</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vecteur</strong> (<em>numpy.array</em>) – Initial vector to produce variations from</p></li>
+<li><p><strong>nb_variants</strong> (<em>int</em>) – Number of variations to produce</p></li>
+<li><p><strong>taux_mutation</strong> (<em>int</em><em> or </em><em>float</em>) – Amount of mutations to apply</p></li>
+<li><p><strong>niveau_mutation</strong> (<em>int</em><em> or </em><em>float</em>) – Intensity of mutations to apply</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>vectors produced by the random mutations</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.array(vecteurs_mutes)</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mutation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.4</span><span class="p">,</span><span class="mf">0.3</span><span class="p">,</span><span class="mf">0.9</span><span class="p">,</span><span class="mf">0.8</span><span class="p">,</span><span class="mf">0.2</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.4</span><span class="p">]),</span> <span class="n">nb_variants</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">taux_mutation</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">niveau_mutation</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="go">[[0.42754856 0.26299389 0.9        0.8        0.2        0.1       0.3276892 ]</span>
+<span class="go">[0.41722165 0.3460928  0.85578323 0.8        0.19935116 0.19189771     0.4       ]</span>
+<span class="go">[0.4        0.3        0.9507284  0.8        0.2        0.15455378     0.27444405]]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Projet 4BIM portaits Groupe 5</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2026, Nathanael PONS, Axel MONDESIR, Ambre LESURTEL, Skander ZOUHIR, Eglantine SALOME.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/Documentation/Algo_génétique.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
