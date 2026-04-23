@@ -43,8 +43,7 @@ def decode_latents(model, latent_numpy):
         x = model.decode(z)
     return x.cpu()
 
-from .algorithme_genetique import fusion as fuse_parents
-from .algorithme_genetique import mutation as mutate_vector
+
 
 
 def fuse_weighted(latents, weights):
