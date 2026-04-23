@@ -1,10 +1,24 @@
+# Custom / Agent
 /.agent
-venv/
-.venv/
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+
+# macOS
 .DS_Store
-data/
+**/.DS_Store
+
+# Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+
+# Data and ML Weights
 *.pth
 *.npz
-data/celeba
+data/
+data/celeba/
