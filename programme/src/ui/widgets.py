@@ -1,4 +1,5 @@
 import tkinter as tk
+import numpy as np
 from .constants import *
 from .utils import numpy_to_photo
 
@@ -94,7 +95,12 @@ class TabBar(tk.Frame):
 
 
 class GlassButton(tk.Canvas):
-    """Rounded glass-effect button."""
+    """Rounded glass-effect button with reliable hover.
+
+    Uses canvas item tags so that hover and click events fire
+    regardless of whether the cursor is over the fill, the text,
+    or the rounded-corner arcs.
+    """
 
     def __init__(self, parent, text, command, width=200, height=42,
                  bg_color=BTN_GLASS, text_color=TEXT_PRIMARY, is_accent=False):
@@ -112,25 +118,29 @@ class GlassButton(tk.Canvas):
 
         self._draw(self.base_color)
 
+        # Bind on the whole canvas, not individual items
         self.bind("<Enter>", lambda e: self._draw(self.hover_color))
         self.bind("<Leave>", lambda e: self._draw(self.base_color))
-        self.bind("<Button-1>", lambda e: self.command())
+        self.bind("<ButtonRelease-1>", lambda e: self.command())
 
     def _draw(self, color):
+        """Redraw the rounded rectangle background with the given color."""
         self.delete("all")
         r = 10
         w, h = self._width, self._height
-        self.create_arc(0, 0, r * 2, r * 2, start=90, extent=90, fill=color, outline="")
-        self.create_arc(w - r * 2, 0, w, r * 2, start=0, extent=90, fill=color, outline="")
-        self.create_arc(0, h - r * 2, r * 2, h, start=180, extent=90, fill=color, outline="")
-        self.create_arc(w - r * 2, h - r * 2, w, h, start=270, extent=90, fill=color, outline="")
+        # Use ovals instead of arcs to prevent pie-slice artifacts
+        self.create_oval(0, 0, r * 2, r * 2, fill=color, outline="")
+        self.create_oval(w - r * 2, 0, w, r * 2, fill=color, outline="")
+        self.create_oval(0, h - r * 2, r * 2, h, fill=color, outline="")
+        self.create_oval(w - r * 2, h - r * 2, w, h, fill=color, outline="")
+        # Overlap the rectangles to hide anti-aliasing seams
         self.create_rectangle(r, 0, w - r, h, fill=color, outline="")
         self.create_rectangle(0, r, w, h - r, fill=color, outline="")
         self.create_text(w / 2, h / 2, text=self.text, fill=self.text_color, font=FONT_BUTTON)
 
 
 class ImageCard(tk.Frame):
-    """Thumbnail with rounded corners, shadow, and selection border."""
+    """Thumbnail with rounded corners, shadow, selection border, weight and mirror controls."""
 
     def __init__(self, parent, image_np, index, callback, size=THUMBNAIL_SIZE):
         super().__init__(parent, bg=parent["bg"])
@@ -138,6 +148,10 @@ class ImageCard(tk.Frame):
         self.is_selected = False
         self.callback = callback
         self.size = size
+
+        self.weight = 1.0
+        self.is_mirrored = False
+        self.image_np = image_np
 
         self.shadow_frame = tk.Frame(self, bg=SHADOW, padx=1, pady=1)
         self.shadow_frame.pack()
@@ -152,6 +166,47 @@ class ImageCard(tk.Frame):
         self.image_label.pack()
         self.image_label.bind("<Button-1>", self._on_click)
 
+        # Controls frame (hidden by default)
+        self.controls_frame = tk.Frame(self, bg=CARD_BG)
+
+        # Weight slider
+        weight_row = tk.Frame(self.controls_frame, bg=CARD_BG)
+        weight_row.pack(fill="x", padx=2, pady=(2, 0))
+        tk.Label(weight_row, text="Weight", font=("SF Pro Text", 8), fg=TEXT_SECONDARY, bg=CARD_BG).pack(side="left")
+        self.weight_var = tk.DoubleVar(value=1.0)
+        self.weight_label = tk.Label(weight_row, text="1.0", font=("SF Pro Text", 8, "bold"), fg=ACCENT, bg=CARD_BG)
+        self.weight_label.pack(side="right")
+        tk.Scale(
+            self.controls_frame, from_=0.0, to=2.0, resolution=0.1,
+            orient="horizontal", variable=self.weight_var,
+            showvalue=False, bg=CARD_BG, fg=ACCENT, troughcolor=BTN_GLASS,
+            highlightthickness=0, length=size - 10,
+            command=self._on_weight_change
+        ).pack(padx=2)
+
+        # Mirror checkbox
+        self.mirror_var = tk.BooleanVar(value=False)
+        tk.Checkbutton(
+            self.controls_frame, text="Mirror", variable=self.mirror_var,
+            font=("SF Pro Text", 8), fg=TEXT_SECONDARY, bg=CARD_BG,
+            selectcolor=CARD_BG, activebackground=CARD_BG,
+            command=self._on_mirror_change
+        ).pack(pady=(0, 2))
+
+    def _on_weight_change(self, val):
+        self.weight = float(val)
+        self.weight_label.config(text=f"{self.weight:.1f}")
+
+    def _on_mirror_change(self):
+        self.is_mirrored = self.mirror_var.get()
+        # Flip the displayed image visually
+        if self.is_mirrored:
+            flipped = np.fliplr(self.image_np)
+        else:
+            flipped = self.image_np
+        self.photo = numpy_to_photo(flipped, self.size)
+        self.image_label.config(image=self.photo)
+
     def _on_click(self, event):
         self.is_selected = not self.is_selected
         self._update_style()
@@ -161,6 +216,8 @@ class ImageCard(tk.Frame):
         if self.is_selected:
             self.shadow_frame.config(bg=SELECTION_BORDER)
             self.card_frame.config(bg=SELECTION_BORDER)
+            self.controls_frame.pack(fill="x")
         else:
             self.shadow_frame.config(bg=SHADOW)
             self.card_frame.config(bg=CARD_BG)
+            self.controls_frame.pack_forget()

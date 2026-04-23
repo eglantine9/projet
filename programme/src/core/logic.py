@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from .models import AutoEncoder
+from .CVAE_architecture import VAE as AutoEncoder
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -43,28 +43,36 @@ def decode_latents(model, latent_numpy):
         x = model.decode(z)
     return x.cpu()
 
-def fuse_parents(parent_matrix):
-    """
-    Calculate the average of multiple parent latent vectors.
-    """
-    # Mean across columns (features) for each sample if matrix, or just mean of samples
-    return np.mean(parent_matrix, axis=0)
+from .algorithme_genetique import fusion as fuse_parents
+from .algorithme_genetique import mutation as mutate_vector
 
-def mutate_vector(vector, num_variants, mutation_rate, mutation_level):
+
+def fuse_weighted(latents, weights):
     """
-    Create mutated variations of a latent vector.
+    Weighted average of latent vectors with norm-preservation.
     """
-    mutated_vectors = []
-    vector = vector.squeeze()
+    weights = np.array(weights, dtype=np.float64)
+    if weights.sum() == 0:
+        weights = np.ones_like(weights)
+    weights = weights / weights.sum()
     
-    for _ in range(num_variants):
-        variant = vector.copy()
-        # Random mask for which genes mutate
-        mask = np.random.rand(len(vector))
-        # Gaussian noise for the mutation
-        noise = np.random.normal(0, mutation_level, len(vector))
-        # Apply mutation where mask < rate
-        variant[mask < mutation_rate] += noise[mask < mutation_rate]
-        mutated_vectors.append(variant)
-        
-    return np.array(mutated_vectors)
+    # Simple linear combination pulls towards the blurry origin center
+    fused_linear = np.average(latents, weights=weights, axis=0)
+    
+    # Calculate the targeted norm (weighted average of parent norms)
+    norms = np.linalg.norm(latents, axis=1)
+    target_norm = np.average(norms, weights=weights)
+    
+    # Scale fused_linear exactly to target hypersphere
+    current_norm = np.linalg.norm(fused_linear)
+    if current_norm > 1e-6:
+        return fused_linear * (target_norm / current_norm)
+    return fused_linear
+
+
+def load_attribute_directions(path):
+    """
+    Load attribute direction vectors from a .npz file.
+    """
+    data = np.load(path)
+    return {key: data[key] for key in data.files}

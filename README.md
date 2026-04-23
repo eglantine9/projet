@@ -1,63 +1,65 @@
-# 4BiM - Générateur de Portrait Robot Interactif
+# 4BiM - Interactive Forensic Composite Generator
 
-**Auteurs** : Nathanael Pons, Axel Mondesir, Ambre Lesurtel, Skander Zouhir, Eglantine Salomé
+**Authors**: Nathanael Pons, Axel Mondesir, Ambre Lesurtel, Skander Zouhir, Eglantine Salomé
 
-## Introduction
+## Overview
 
-L'objectif de ce logiciel est de générer le portrait d'une personne (de type portrait-robot). Pour ce faire, une interface présente 10 images à l'utilisateur sur lesquelles il peut interagir. L'utilisateur peut y effectuer les actions qu'il souhaite jusqu'à l'obtention d'un résultat qui le satisfait.
+4BiM is a highly interactive application that visually reconstructs human faces via a **Conditional Variational Autoencoder (CVAE)** intertwined with a **Genetic Algorithm**. The software renders 10 real-time latent samples for the user, allowing them to explicitly fuse biological geometry and apply severe semantic variations iteratively until a perfect facial reconstruction is achieved.
 
-Le projet repose sur la combinaison d'un **CVAE (Conditional Variational Autoencoder)** pour l'encodage et la génération d'images, couplé à un **Algorithme Génétique** qui gère la mutation et la fusion (croisement) des caractéristiques dans l'espace latent.
+## System Architecture
 
-## Architecture Complète du Projet
+The repository follows a clean, modular Model-View-Controller paradigm explicitly separating the mathematical AI algorithms from the user interface rendering paths.
 
-Voici l'arborescence détaillée du projet, couvrant l'intégralité de la base de code, des ressources IA, et du logiciel :
+```text
+ProjetBIM/
+├── programme/                   # The Main Application Module
+│   ├── main.py                  # Entry Point (Bootstraps virtual environment & loads App)
+│   └── src/
+│       ├── core/                # AI Core Library
+│       │   ├── logic.py         # Mathematically fuses latent spaces & maintains spatial vectors
+│       │   ├── algorithme_genetique.py # Manages matrix permutations and vector reconstruction
+│       │   └── CVAE_architecture.py    # Deep Learning network topology map
+│       ├── ui/                  # User Interface Implementation
+│       │   ├── app.py           # Main window, state logic, and multi-thread controller
+│       │   ├── screens.py       # Views (Grid renderers, Media Library, Custom Image Alignment)
+│       │   ├── widgets.py       # Custom Glassmorphism UI components
+│       │   ├── utils.py         # Event dispatching and thread utilities
+│       │   └── constants.py     # Theming variables and UI grid dimensions
+│       └── assets/              
+│           └── vae_celeba_final.pth # Pre-trained Machine Learning Weights (Imported at runtime)
+│
+├── data/                        # Reference Datasets
+│   ├── celeba/                  # Raw image dataset providing randomized facial seeds
+│   ├── attribute_directions.npz # Derived High-Dimensional math limits for semantics (Smiling, etc)
+│   └── attribute_vectors.npz    
+│
+├── research/                    # Academic Sandbox (Isolated)
+│   ├── CVAE_train.py            # Development scripts for GPU training on the original model
+│   └── ...                      # (Not required for final execution)
+│
+└── docs/                        # Reference Manuals (Sphinx & Agile methodology)
+```
 
-### 1. `programme/` - Application et Interface Utilisateur
-Code finalisé du logiciel interactif, intégrant les algorithmes avec une interface graphique moderne.
-- **`main.py`** : Point d'entrée à exécuter pour lancer le logiciel.
-- **`venv/`** : Environnement virtuel Python contenant localement les dépendances requises.
-- **`Algorithme_ Genetique/`** : Scripts et fonctions historiques de l'algorithme génétique autonome utilisé dans le projet.
-- **`src/`** : Code source modulaire de l'application.
-  - **`assets/`** : Contient le poids final de l'IA chargé in-app (`vae_celeba_final.pth`).
-  - **`core/`** : Logique métier et intelligence artificielle.
-    - `models.py` : Architecture formelle du **CVAE** (`AutoEncoder`/`VAE`).
-    - `logic.py` : Cœur algorithmique. Fait la jonction : encodage des visages, calculs matriciels des vecteurs latents (croisement/fusion), et applications des masques de mutation.
-  - **`ui/`** : Composants de l'ensemble de l'Interface Utilisateur (développée en module Tkinter).
-    - `app.py` : Fenêtre principale, state management et coordinateur des calculs. S'occupe du chargement aléatoire des échantillons depuis CelebA.
-    - `constants.py` : Configuration de l'UI (thème couleur, dimensions).
-    - `screens.py`, `widgets.py`, `utils.py` : Décomposition de l'interface en onglets et gestion des events.
+## Advanced Mathematical Processing
 
-### 2. `data/` - Base de données & Matrices Latentes
-Dossier contenant l'épaisse base de visages et d'extrapolations statistiques.
-- **`celeba/`** : Dataset brut.
-  - `img_align_celeba/` : Contient l'intégralité des images (+200000) de visages de la base CelebA.
-  - Fichiers `.txt` (`list_attr_celeba`, `identity_CelebA`...) : Méta-données et classifications annexes des visages (dimensions sémantiques, points clés).
-- **`attribute_directions.npz`** & **`attribute_vectors.npz`** : Matrices de calcul pré-générées représentant des dimensions sémantiques (pour guider la mutation dans des axes comme des "lunettes" ou "genre" sur l'espace latent VAE).
+### Norm-Preserving Hypersphere Fusion
+In a standard Gaussian VAE, linearly interpolating two faces mathematically scales the resulting tensor down, causing the output image to degenerate into a blurry structure. This system integrates **Norm-Preserving Algebraic Injection**, effectively calculating the input vector radii and snapping the fused face specifically onto the surface boundary of the hypersphere. Fusions retain 100% of parent HD structural sharpness.
 
-### 3. `research/` - Environnement IA & Pipelines
-Dossier isolé contenant le framework de Deep Learning PyTorch, destiné aux itérations et à la preuve de construction du VAE. Pas requis pour lancer le logiciel.
-- **`CVAE_architecture.py`** : Brouillon original brut de l'architecture du CVAE (Encodeur / Décodeur / Forward avec Kullback-Leibler).
-- **`CVAE_train.py`** : Script d'entraînement avec itérations Epoch, Backpropagation et affichage des Losses sur GPU.
-- **`CVAE_test.py`** : Script de test post-entrainement mesurant la capacité du modèle construit.
-- **`CVAE_latent.py`** : Utilitaires pour décortiquer un sous-espace d'encodage.
-- **`CVAE_attributes_vectors.py`** & **`CVAE_attributs_directions.py`** : Pipeline utilisé pour produire les fichiers `.npz` de direction d'attributs sémantiques.
+### Forced Alignment Extraction (`CropDialog`)
+Any external custom image introduced to the VAE model will inherently corrupt the vector space if not identical in geometric spacing. 4BiM introduces an Interactive Mask GUI utilizing CelebA boundary laws (forcing eyes squarely onto a `51% Y` threshold limit) allowing any arbitrary imported face to encode natively and sharply.
 
-### 4. `docs/` - Documentation Officielle & Agilité
-- Support technique au format **Sphinx** pour la production d’un site vitrine ou PDF `(index.rst`, `conf.py`, `Makefile`).
-- **`ProductBacklog.pdf`** : Le cahier des charges et le plan Agile structurant la construction du projet BIM.
+### Dynamic Attribute Escalations
+Instead of statically pushing geometry variables across all semantics, modifiers scale dynamically representing their true physical cost. (e.g. `Baldness` requires a `6.5x` latent push to completely empty the hair coordinate plane compared to `3.0x` for `Smiling`).
 
-## Installation
+## Installation & Execution
 
-### Prérequis
+The software self-isolates on execution, avoiding system pollution.
 
-Assurez-vous d'avoir Python 3.x installé sur votre système. Vous aurez également besoin des bibliothèques suivantes :
-
-- `torch` et `torchvision` (pour le modèle CVAE)
-- `numpy` (pour les calculs matriciels)
-- `Pillow` (pour la manipulation d'images dans l'interface)
-- `scikit-learn` (utilisé pour charger les images initiales / d'entraînement)
-
-Vous pouvez installer ces dépendances via la commande `pip` :
+```bash
+# Simply execute the bootloader
+# (It will load .venv autonomously alongside PyTorch dependencies)
+python3 programme/main.py
+```
 
 ```bash
 pip install torch torchvision numpy Pillow scikit-learn

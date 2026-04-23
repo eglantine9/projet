@@ -11,34 +11,58 @@ import torch
 import random
 
 # Core imports
-from ..core.logic import load_trained_model, encode_images, decode_latents, fuse_parents, mutate_vector
+from ..core.logic import load_trained_model, encode_images, decode_latents, fuse_parents, mutate_vector, fuse_weighted, load_attribute_directions
 
 # UI imports
 from .constants import *
 from .widgets import TabBar
-from .screens import HomeScreen, SettingsScreen, DocsScreen, MediaScreen, GridScreen
+from .screens import HomeScreen, SettingsScreen, DocsScreen, MediaScreen, GridScreen, CreditsScreen
 
 # Determine asset path relative to this file
 _UI_DIR = os.path.dirname(os.path.abspath(__file__))
 _SRC_DIR = os.path.dirname(_UI_DIR)
 _MODEL_PATH = os.path.join(_SRC_DIR, "assets", "vae_celeba_final.pth")
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(_SRC_DIR))
+_ATTR_DIR_PATH = os.path.join(_PROJECT_ROOT, "data", "attribute_directions.npz")
 
 # Global model instance
 model, latent_dim = load_trained_model(_MODEL_PATH)
 
+# Attribute directions for semantic control
+try:
+    attribute_directions = load_attribute_directions(_ATTR_DIR_PATH)
+except Exception:
+    attribute_directions = {}
+
 
 class Application(tk.Tk):
+    """Main application window managing tabs, sidebar, and fusion pipeline."""
+
     def __init__(self):
         super().__init__()
 
         self.title("Image Fusion")
+        self._setup_icon()
+        self.bind_all("<MouseWheel>", self._on_mousewheel)
+        self.bind_all("<Button-4>", self._on_mousewheel)
+        self.bind_all("<Button-5>", self._on_mousewheel)
         self.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
         self.configure(bg=BG_MAIN)
-        self.resizable(False, False)
+        self.resizable(True, True)
+        self.minsize(900, 600)
 
         self.variant_count = DEFAULT_VARIANT_COUNT
         self.mutation_rate = DEFAULT_MUTATION_RATE
         self.mutation_level = DEFAULT_MUTATION_LEVEL
+
+        # Semantic attributes
+        self.active_attributes = {
+            "Bald": tk.BooleanVar(value=False),
+            "Eyeglasses": tk.BooleanVar(value=False),
+            "Smiling": tk.BooleanVar(value=False),
+            "Mustache": tk.BooleanVar(value=False),
+        }
+        self.attribute_scale = 3.0  # ~10% of typical latent norm (~29)
 
         self.root_frame = tk.Frame(self, bg=BG_MAIN)
         self.root_frame.pack(fill="both", expand=True)
@@ -102,15 +126,33 @@ class Application(tk.Tk):
         logo.create_oval(12, 12, 24, 24, fill="#ffffff", outline="")
         logo.create_oval(15, 15, 21, 21, fill=ACCENT, outline="")
 
-        self._add_sidebar_button(bar, self._draw_docs_icon, "Docs", self._open_docs)
+        self._add_sidebar_button(bar, self._draw_home_icon, "Home", self._go_home)
+        self._add_sidebar_button(bar, self._draw_docs_icon, "Guide", self._open_docs)
         self._add_sidebar_button(bar, self._draw_media_icon, "Media", self._open_media)
 
         tk.Frame(bar, bg=BG_SIDEBAR).pack(fill="y", expand=True)
         tk.Frame(bar, height=1, bg="#3a3a3c").pack(fill="x", padx=10, pady=5)
 
+        self._add_sidebar_button(bar, self._draw_credits_icon, "Credits", self._open_credits)
         self._add_sidebar_button(bar, self._draw_settings_icon, "Settings", self._open_settings)
 
         tk.Frame(bar, height=15, bg=BG_SIDEBAR).pack()
+
+    @staticmethod
+    def _draw_home_icon(canvas):
+        """Draw a house icon on the given canvas."""
+        c, col = canvas, TEXT_SIDEBAR
+        c.create_polygon(20, 6, 8, 16, 12, 16, 12, 26, 28, 26, 28, 16, 32, 16,
+                         fill="", outline=col, width=1.5)
+        c.create_rectangle(17, 18, 23, 26, outline=col, width=1.2, fill="")
+
+    @staticmethod
+    def _draw_credits_icon(canvas):
+        """Draw an info-circle icon on the given canvas."""
+        c, col = canvas, TEXT_SIDEBAR
+        c.create_oval(8, 4, 32, 28, outline=col, width=1.5, fill="")
+        c.create_text(20, 10, text="i", font=("SF Pro Text", 12, "bold"), fill=col)
+        c.create_line(20, 16, 20, 24, fill=col, width=1.5)
 
     @staticmethod
     def _draw_docs_icon(canvas):
@@ -297,7 +339,7 @@ class Application(tk.Tk):
             bottom = (h + crop_size) // 2
             
             img = img.crop((left, top, right, bottom))
-            img = img.resize((64, 64))
+            img = img.resize((64, 64), Image.LANCZOS)
             img = img.convert("L")
             img_arr = np.array(img, dtype=np.float32) / 255.0
             
@@ -307,22 +349,50 @@ class Application(tk.Tk):
         images = list(self.custom_photos) + dataset_images
         self.push_screen(images, custom_photo_count=custom_count)
 
-    def run_fusion(self, source_images, selected_indices):
-        selected = [source_images[k] for k in selected_indices]
-        if len(selected_indices) == 1:
-            images_t = torch.tensor(np.array(selected), dtype=torch.float32).unsqueeze(1)
-            latent = encode_images(model, images_t)
-            mutated = mutate_vector(latent, self.variant_count + 1, self.mutation_rate, self.mutation_level)
-            results = decode_latents(model, mutated).squeeze(1)
-        else:
-            images_t = torch.tensor(np.array(selected), dtype=torch.float32).unsqueeze(1)
-            latent = encode_images(model, images_t)
-            fused = fuse_parents(latent)
-            fused_result = decode_latents(model, fused).squeeze(1)
-            mutated = mutate_vector(fused, self.variant_count, self.mutation_rate, self.mutation_level)
-            mutated_results = decode_latents(model, mutated).squeeze(1)
-            results = torch.cat([fused_result, mutated_results], dim=0)
+    def run_fusion(self, source_images, selected_indices, weights=None, mirrors=None):
+        # Prepare images (apply mirror if needed)
+        selected = []
+        for k in selected_indices:
+            img = source_images[k]
+            if mirrors and mirrors.get(k, False):
+                img = np.fliplr(img).copy()
+            selected.append(img)
 
+        images_t = torch.tensor(np.array(selected), dtype=torch.float32).unsqueeze(1)
+        latent = encode_images(model, images_t)
+
+        if len(selected_indices) == 1:
+            fused = latent.squeeze(0)
+        else:
+            # Weighted or simple fusion
+            if weights:
+                w = [weights.get(k, 1.0) for k in selected_indices]
+                fused = fuse_weighted(latent, w)
+            else:
+                fused = fuse_parents(latent)
+
+        # Apply semantic attributes
+        # Vectors require vastly different scaler intensities to cross the visual threshold
+        attr_multipliers = {
+            "Bald": 6.5,
+            "Eyeglasses": 7.5,
+            "Smiling": 3.0,
+            "Mustache": 4.5
+        }
+        
+        for attr_name, var in self.active_attributes.items():
+            if var.get() and attr_name in attribute_directions:
+                scale = attr_multipliers.get(attr_name, self.attribute_scale)
+                fused = fused + scale * attribute_directions[attr_name]
+
+        # Decode fused result
+        fused_result = decode_latents(model, fused).squeeze(1)
+
+        # Mutate
+        mutated = mutate_vector(fused, self.variant_count, self.mutation_rate, self.mutation_level)
+        mutated_results = decode_latents(model, mutated).squeeze(1)
+
+        results = torch.cat([fused_result, mutated_results], dim=0)
         result_images = results.detach().cpu().numpy()
         self.push_screen(list(result_images))
 
@@ -360,10 +430,68 @@ class Application(tk.Tk):
     # ── Open Special Tabs ────────────────────────────────────────────────
 
     def _open_docs(self):
-        self._open_unique_tab("docs", "Documentation", DocsScreen)
+        self._open_unique_tab("docs", "Guide", DocsScreen)
 
     def _open_settings(self):
         self._open_unique_tab("settings", "Settings", SettingsScreen)
 
     def _open_media(self):
+        """Open the My Media tab."""
         self._open_unique_tab("media", "My Media", MediaScreen)
+
+    def _open_credits(self):
+        """Open the Credits tab."""
+        self._open_unique_tab("credits", "Credits", CreditsScreen)
+
+    def _go_home(self):
+        """Navigate to the first tab."""
+        if self.tabs:
+            self.select_tab(0)
+
+    # ── Global Setup/Events ──────────────────────────────────────────────────
+
+    def _setup_icon(self):
+        """Generate and set a custom application icon."""
+        try:
+            from PIL import Image, ImageDraw, ImageTk
+            size = 256
+            img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+            d = ImageDraw.Draw(img)
+            d.rounded_rectangle([(0, 0), (size, size)], radius=64, fill="#1c1c1e")
+            d.ellipse([(64, 64), (192, 192)], fill="#ffffff")
+            d.ellipse([(96, 96), (160, 160)], fill="#0a84ff")
+            self._icon_img = ImageTk.PhotoImage(img) # Prevent garbage collection
+            self.iconphoto(True, self._icon_img)
+        except Exception as e:
+            print(f"Icon setup failed: {e}")
+
+    def _on_mousewheel(self, event):
+        """Global handler to scroll the active tab's Canvas on macOS/Linux."""
+        try:
+            if self.active_tab_idx < 0:
+                return
+            tab = self.tabs[self.active_tab_idx]
+            
+            # Find the foremost screen of the current tab
+            if tab.get("type") == "fusion":
+                screen = tab["screen_stack"][-1] if tab.get("screen_stack") else tab.get("home_screen")
+            else:
+                screen = tab.get("current_screen")
+                
+            if screen and hasattr(screen, "scroll_canvas"):
+                raw_delta = getattr(event, "delta", 0)
+                
+                # Determine standard trackpad velocity
+                if raw_delta == 0:
+                    if getattr(event, "num", 0) == 4: delta = -1
+                    elif getattr(event, "num", 0) == 5: delta = 1
+                    else: return
+                else:
+                    delta = int(-raw_delta)
+                    if delta == 0:
+                        delta = -1 if raw_delta > 0 else 1
+                
+                # Apply native scroll directly to the canvas component
+                screen.scroll_canvas.yview_scroll(delta, "units")
+        except Exception as e:
+            print(f"Scroll error: {e}")

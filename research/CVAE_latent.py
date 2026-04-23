@@ -4,6 +4,9 @@
 
 import torch # PyTorch library for tensor operations and deep learning
 import numpy as np # NumPy for array operations
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "programme", "src", "core")))
 from CVAE_architecture import VAE # Import the VAE architecture
 
 # Use GPU if available, else CPU

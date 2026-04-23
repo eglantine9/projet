@@ -2,6 +2,9 @@ import torch # PyTorch library
 import torch.nn.functional as F # Functional API for loss functions, activations, etc.
 from torch.utils.data import DataLoader, Dataset, Subset # Dataset and DataLoader utilities
 from torchvision import datasets, transforms # Standard datasets and image transformations
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "programme", "src", "core")))
 from CVAE_architecture import VAE # VAE architecture
 
 # ======================
