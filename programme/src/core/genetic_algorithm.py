@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def fusion(matrix):
+def fuse_parents(matrix):
     """
     Geometrically average multiple latent vector rows into a single vector,
     enforcing Spherical interpolation (Norm Preservation).
@@ -9,7 +9,7 @@ def fusion(matrix):
     Parameters
     ----------
     matrix : numpy.ndarray
-        Array containing all input vectors (shape: [num_vectors, latent_dim])
+        Array containing all input vectors (shape: [num_variants, latent_dim])
 
     Returns
     -------
@@ -18,7 +18,7 @@ def fusion(matrix):
 
     Examples
     --------
-    >>> fusion(np.array([[0.5,0.8,0.2],[0.4,0.7,0.1]]))
+    >>> fuse_parents(np.array([[0.5,0.8,0.2],[0.4,0.7,0.1]]))
     """
     # Mean across all vectors
     mean_vec = np.mean(matrix, axis=0)
@@ -34,7 +34,7 @@ def fusion(matrix):
     return mean_vec
 
 
-def mutation(vector, num_variants, mutation_rate, mutation_level):
+def mutate_vector(vector, num_variants, mutation_rate, mutation_level):
     """
     Generate multiple mutated variants of a given latent vector by substituting 
     certain dimensions with Gaussian noise.
@@ -57,11 +57,11 @@ def mutation(vector, num_variants, mutation_rate, mutation_level):
     """
     mutated_vectors = []
     for _ in range(num_variants):
-        vect_mut = vector.copy()
-        mute = np.random.rand(len(vector)) 
+        mutated_vec = vector.copy()
+        mutation_probs = np.random.rand(len(vector)) 
         noise = np.random.normal(0, mutation_level, len(vector))
         for i in range(len(vector)):
-            if mute[i] < mutation_rate:
-                vect_mut[i] += noise[i]
-        mutated_vectors.append(vect_mut)
+            if mutation_probs[i] < mutation_rate:
+                mutated_vec[i] += noise[i]
+        mutated_vectors.append(mutated_vec)
     return np.array(mutated_vectors)

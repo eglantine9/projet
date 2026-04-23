@@ -11,18 +11,30 @@ import torch
 
 
 # Core imports
-from ..core.logic import load_trained_model, encode_images, decode_latents, fuse_parents, mutate_vector, fuse_weighted, load_attribute_directions
+from ..core.logic import load_trained_model, encode_images, decode_latents, fuse_weighted, load_attribute_directions
+from ..core.genetic_algorithm import fuse_parents, mutate_vector
 
 # UI imports
 from .constants import *
 from .widgets import TabBar
 from .screens import HomeScreen, SettingsScreen, DocsScreen, MediaScreen, GridScreen, CreditsScreen
 
-# Determine asset path relative to this file
-_UI_DIR = os.path.dirname(os.path.abspath(__file__))
-_SRC_DIR = os.path.dirname(_UI_DIR)
+import sys
+
+# Determine path resolution for normal execution vs PyInstaller
+if getattr(sys, 'frozen', False):
+    import sys
+    _UI_DIR = os.path.dirname(os.path.abspath(__file__))
+    _SRC_DIR = os.path.dirname(_UI_DIR)
+    # _MEIPASS has the bundled contents.
+    _EXEC_DIR = os.path.dirname(sys.executable)
+    _PROJECT_ROOT = _EXEC_DIR
+else:
+    _UI_DIR = os.path.dirname(os.path.abspath(__file__))
+    _SRC_DIR = os.path.dirname(_UI_DIR)
+    _PROJECT_ROOT = os.path.dirname(os.path.dirname(_SRC_DIR))
+
 _MODEL_PATH = os.path.join(_SRC_DIR, "assets", "vae_celeba_final.pth")
-_PROJECT_ROOT = os.path.dirname(os.path.dirname(_SRC_DIR))
 _ATTR_DIR_PATH = os.path.join(_PROJECT_ROOT, "data", "attribute_directions.npz")
 
 # Global model instance
@@ -312,7 +324,7 @@ class Application(tk.Tk):
     # ── Business Logic ───────────────────────────────────────────────────
 
     def load_sample(self):
-        celeba_dir = os.path.abspath(os.path.join(_SRC_DIR, "..", "..", "data", "celeba", "img_align_celeba"))
+        celeba_dir = os.path.abspath(os.path.join(_PROJECT_ROOT, "data", "celeba", "img_align_celeba"))
         
         try:
             # We assume images are mostly .jpg in that directory

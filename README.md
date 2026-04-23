@@ -65,30 +65,30 @@ python3 programme/main.py
 pip install torch torchvision numpy Pillow scikit-learn
 ```
 
-## Utilisation
+## Usage
 
-Pour démarrer l'application, exécutez le script principal depuis la racine :
+To start the application, run the main script from the root:
 
 ```bash
 python programme/main.py
 ```
 
-Au lancement, l'utilisateur se voit initialement proposer 10 images. Il peut sélectionner celles qui lui semblent les plus proches de sa cible (la personne recherchée) afin de les fusionner et de les faire muter. Un deuxième groupe d'images résultant de ces opérations lui sera ensuite proposé, et ainsi de suite jusqu'à satisfaction.
+Upon launch, the user is initially presented with 10 images. They can select the ones that look closest to their target (the person being searched for) in order to fuse and mutate them. A second group of images resulting from these operations will then be proposed, and so on until satisfaction.
 
-L'utilisateur peut également sauvegarder les images obtenues, importer ses propres images, ou redémarrer le processus complet.
+The user can also save the resulting images, import their own images, or restart the entire process.
 
-Plusieurs paramètres sont contrôlables depuis l'interface. Voici la liste complète des fonctionnalités :
+Several parameters can be controlled from the interface. Here is the full list of features:
 
-### Fonctionnalités
+### Features
 
-* **Sélection (Select)** : En cliquant sur une image, l'utilisateur la sélectionne. Les images sélectionnées sont caractérisées par une bordure rouge.
-* **Fusion (Merge)** : En cliquant sur le bouton « fusionner et muter », l'utilisateur confirme les images sélectionnées. Le logiciel fusionne l'espace latent de toutes les images sélectionnées, affiche le résultat de cette fusion dans le coin supérieur gauche, et affiche 9 autres images générées à partir de variations mutantes de cette fusion.
-* **Sauvegarde (Save)** : En cliquant sur « Save », l'utilisateur stocke la ou les images choisies sur son appareil, soit au format PNG, soit regroupées dans une archive ZIP.
-* **Retour (Back)** : Permet d'annuler les opérations et de revenir à l'ensemble d'images précédent.
+* **Select** : By clicking on an image, the user selects it. Selected images are highlighted with a red border.
+* **Merge** : By clicking on the "Fuse →" button, the user confirms the selected images. The software merges the latent space of all selected images, displays the result of this fusion in the top left corner, and displays 9 other mutant images generated from this fusion.
+* **Save** : By clicking on "Save", the user stores the chosen image(s) on their device, either in PNG format or grouped in a ZIP archive.
+* **Back** : Cancels operations and returns to the previous set of images.
 
-### Paramètres de l'Algorithme (Settings)
+### Algorithm Settings
 
-Dans la section réglages, il est possible de modifier l'impact de l'algorithme génétique :
-* **Taux de mutation (Mutation rate)** : La quantité de traits ou régions mutées entre chaque génération.
-* **Intensité de mutation (Mutation intensity)** : L'amplitude ou la force des mutations appliquées sur l'espace latent (impact visuel mesuré).
-* **Nombre d'images (Number of images / Variant Count)** : Le nombre d'images mutantes proposées à partir de la fusion initiale.
+In the settings section, it is possible to modify the impact of the genetic algorithm:
+* **Mutation rate** : The amount of traits or regions mutated between each generation.
+* **Mutation level / intensity** : The amplitude or force of the mutations applied to the latent space (measured visual impact).
+* **Number of images / Variant Count** : The number of mutant images proposed from the initial fusion.
