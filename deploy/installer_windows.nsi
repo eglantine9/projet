@@ -16,12 +16,12 @@ Section "MainSection" SEC01
     
     ; Copy source files directly (No compilation!)
     SetOutPath "$INSTDIR\programme"
-    File /r /x "venv" /x "__pycache__" "programme\*"
+    File /r /x "venv" /x "__pycache__" "..\programme\*"
     SetOutPath "$INSTDIR"
-    File /r "data"
+    File /r "..\data"
     File "run.bat"
-    File "LICENSE"
-    File "README.md"
+    File "..\LICENSE"
+    File "..\README.md"
     
     ; Create a shortcut on the Desktop that executes run.bat
     CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\run.bat" "" "$INSTDIR\programme\src\assets\icon.ico"

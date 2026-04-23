@@ -5,6 +5,8 @@
 # ============================================================================
 set -e
 
+cd "$(dirname "$0")/.."
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
@@ -32,7 +34,7 @@ end tell'
 # 1B. Inject all core code inside the app bundle's resources
 APP_DIR="$APP_BUNDLE/Contents/Resources"
 rsync -aP --exclude 'venv/' --exclude '__pycache__/' programme "$APP_DIR/"
-cp -r data run.sh LICENSE README.md "$APP_DIR/"
+cp -r data deploy/run.sh LICENSE README.md "$APP_DIR/"
 chmod +x "$APP_DIR/run.sh"
 
 # Copy an icon if it exists
@@ -63,7 +65,7 @@ if ! command -v makensis &> /dev/null; then
     fi
 fi
 
-makensis installer_windows.nsi
+makensis deploy/installer_windows.nsi
 
 echo -e "${GREEN}-> Created ProfileX_Setup_Windows.exe successfully!${NC}"
 echo -e "${CYAN}Done. Installers are located in dist/Installers/.${NC}"

@@ -12,9 +12,18 @@ echo ║        ProfileX - Forensic Composite Generator       ║
 echo ╚══════════════════════════════════════════════════╝
 echo.
 
-set "PROJECT_ROOT=%~dp0"
-:: Remove trailing backslash
-if "%PROJECT_ROOT:~-1%"=="\" set "PROJECT_ROOT=%PROJECT_ROOT:~0,-1%"
+set "SCRIPT_DIR=%~dp0"
+if "%SCRIPT_DIR:~-1%"=="\" set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
+
+if exist "%SCRIPT_DIR%\programme" (
+    set "PROJECT_ROOT=%SCRIPT_DIR%"
+) else if exist "%SCRIPT_DIR%\..\programme" (
+    set "PROJECT_ROOT=%SCRIPT_DIR%\.."
+) else (
+    echo [FAIL] Could not find programme folder.
+    pause
+    exit /b 1
+)
 set "VENV_DIR=%PROJECT_ROOT%\programme\venv"
 set "REQUIREMENTS=%PROJECT_ROOT%\programme\requirements.txt"
 set "MAIN_PY=%PROJECT_ROOT%\programme\main.py"

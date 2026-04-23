@@ -20,7 +20,14 @@ fail()    { echo -e "${RED}[FAIL]${NC}  $*"; }
 
 # ── Resolve the project root (where this script lives) ──────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$SCRIPT_DIR"
+if [ -d "$SCRIPT_DIR/programme" ]; then
+    PROJECT_ROOT="$SCRIPT_DIR"
+elif [ -d "$SCRIPT_DIR/../programme" ]; then
+    PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+else
+    fail "Could not find programme folder."
+    exit 1
+fi
 if [[ "$OSTYPE" == "darwin"* ]]; then
     VENV_DIR="$HOME/Library/Application Support/ProfileX/venv"
 else
