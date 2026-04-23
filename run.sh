@@ -21,7 +21,11 @@ fail()    { echo -e "${RED}[FAIL]${NC}  $*"; }
 # ── Resolve the project root (where this script lives) ──────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$SCRIPT_DIR"
-VENV_DIR="$PROJECT_ROOT/programme/venv"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    VENV_DIR="$HOME/Library/Application Support/ProfileX/venv"
+else
+    VENV_DIR="$HOME/.ProfileX_venv"
+fi
 REQUIREMENTS="$PROJECT_ROOT/programme/requirements.txt"
 MAIN_PY="$PROJECT_ROOT/programme/main.py"
 
@@ -90,7 +94,7 @@ success "tkinter is available"
 # ── Step 4: Create / Repair Virtual Environment ────────────────────────────
 info "Setting up virtual environment..."
 if [ ! -d "$VENV_DIR" ]; then
-    info "Creating virtual environment at programme/venv..."
+    info "Creating virtual environment..."
     "$PYTHON_CMD" -m venv "$VENV_DIR"
     success "Virtual environment created"
 elif [ ! -f "$VENV_DIR/bin/python3" ] && [ ! -f "$VENV_DIR/bin/python" ]; then

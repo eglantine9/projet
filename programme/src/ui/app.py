@@ -61,7 +61,7 @@ class Application(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        self.title("Image Fusion")
+        self.title("ProfileX")
         self._setup_icon()
         self.bind_all("<MouseWheel>", self._on_mousewheel)
         self.bind_all("<Button-4>", self._on_mousewheel)

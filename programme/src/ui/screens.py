@@ -41,7 +41,7 @@ class HomeScreen(tk.Frame):
         icon_canvas.create_oval(30, 38, 50, 55, fill="", outline="white", width=2)
 
         tk.Label(
-            container, text="Image Fusion",
+            container, text="ProfileX",
             font=("SF Pro Display", 32, "bold"),
             fg=TEXT_PRIMARY, bg=BG_MAIN
         ).pack(pady=(0, 8))
@@ -205,7 +205,7 @@ class DocsScreen(tk.Frame):
         ).pack(side="left")
 
         tk.Label(
-            content, text="How to use the Image Fusion application",
+            content, text="How to use the ProfileX application",
             font=FONT_SUBTITLE, fg=TEXT_SECONDARY, bg=BG_MAIN, anchor="w"
         ).pack(fill="x", padx=pad, pady=(0, 20))
 
@@ -765,7 +765,7 @@ class CreditsScreen(tk.Frame):
 
         sections = [
             ("Project",
-             "Image Fusion — Face generation using a Variational Autoencoder\n"
+             "ProfileX — Face generation using a Variational Autoencoder\n"
              "and genetic algorithm. Built with Python, PyTorch, and Tkinter."),
             ("Authors",
              "Nathanaël Pons, Axel Mondesir, Ambre Lesurtel, Skander Zouhir, Eglantine Salomé.\n"
@@ -798,15 +798,5 @@ class CreditsScreen(tk.Frame):
 
     @staticmethod
     def _get_version():
-        """Derive a version string from the number of git commits."""
-        try:
-            project_root = os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            )
-            count = subprocess.check_output(
-                ["git", "rev-list", "--count", "HEAD"],
-                cwd=project_root, stderr=subprocess.DEVNULL
-            ).decode().strip()
-            return f"0.{count}"
-        except Exception:
-            return "0.0"
+        """Retrieve the current release version of ProfileX."""
+        return "1.0.0"

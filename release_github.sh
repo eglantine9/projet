@@ -18,8 +18,8 @@ fi
 VERSION="v1.0.0"
 
 # Check for artifacts
-MAC_PKG="dist/Installers/4BiM_macOS.pkg"
-WIN_EXE="dist/Installers/4BiM_Setup_Windows.exe"
+MAC_PKG="dist/Installers/ProfileX_macOS.pkg"
+WIN_EXE="dist/Installers/ProfileX_Setup_Windows.exe"
 
 ARTIFACTS=""
 [ -f "$MAC_PKG" ] && ARTIFACTS="$ARTIFACTS $MAC_PKG" && echo "Found macOS PKG."
@@ -29,15 +29,15 @@ echo -e "${CYAN}Creating GitHub Release ${VERSION}...${NC}"
 
 # Ensure tag exists locally or gh release create will create it automatically
 gh release create "$VERSION" $ARTIFACTS \
-    --title "4BiM Forensic Composite Generator - $VERSION" \
-    --notes "Thank you for using 4BiM.
+    --title "ProfileX ($VERSION)" \
+    --notes "Welcome to ProfileX!
     
-### Fast Extracting Installers!
-These installers are highly optimized. They simply extract the main modules to your computer and set everything up natively on first launch.
+### Fast Extracting Installers
+These installers are highly optimized. They deploy the core modules and bootstrap everything dynamically on first launch.
 
 ### Installation
-- **macOS Users:** Download \`4BiM_macOS.pkg\` and run the package installer. It will place 4BiM in your Applications.
-- **Windows Users:** Download \`4BiM_Setup_Windows.exe\` and run the wizard. It will place a shortcut directly on your desktop.
+- **macOS Users:** Download \`ProfileX_macOS.pkg\` and run the package installer. It will place ProfileX in your Applications.
+- **Windows Users:** Download \`ProfileX_Setup_Windows.exe\` and run the wizard. It will place a shortcut directly on your desktop.
 
 ### Credits
 Created internally by Nathanael Pons, Axel Mondesir, Ambre Lesurtel, Skander Zouhir, Eglantine Salomé (Licensed under MIT).

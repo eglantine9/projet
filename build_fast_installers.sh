@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================================
-#  4BiM - Rapid Source-Based Installer Builder
+#  ProfileX - Rapid Source-Based Installer Builder
 #  Generates macOS (.pkg) and Windows (.exe) instantly without PyInstaller.
 # ============================================================================
 set -e
@@ -10,7 +10,7 @@ GREEN='\033[0;32m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-echo -e "${CYAN}Creating fast extracting installers for 4BiM...${NC}"
+echo -e "${CYAN}Creating fast extracting installers for ProfileX...${NC}"
 
 mkdir -p dist/Installers
 
@@ -20,35 +20,33 @@ mkdir -p dist/Installers
 echo "Building macOS Installer (.pkg)..."
 
 PAYLOAD_DIR="dist/mac_payload"
-APP_DIR="${PAYLOAD_DIR}/Applications/4BiM"
+mkdir -p "$PAYLOAD_DIR/Applications"
+APP_BUNDLE="${PAYLOAD_DIR}/Applications/ProfileX.app"
 
-mkdir -p "$APP_DIR"
-rsync -aP --exclude 'venv/' --exclude '__pycache__/' programme "$APP_DIR/"
-cp -r data run.sh LICENSE README.md "$APP_DIR"
-chmod +x "$APP_DIR/run.sh"
-
-# Create a simple AppleScript wrapper so it sits in Applications nicely
-osacompile -o "$APP_DIR/4BiM.app" -e 'tell application "Terminal"
-    do script (POSIX path of (path to me)) & "/Contents/Resources/run.sh"
+# 1A. Create the Application Bundle first
+osacompile -o "$APP_BUNDLE" -e 'tell application "Terminal"
+    do script "\"" & POSIX path of (path to me) & "Contents/Resources/run.sh\""
     activate
 end tell'
 
-# Move the actual run.sh inside the .app bundle so the user can just click it
-cp "$APP_DIR/run.sh" "$APP_DIR/4BiM.app/Contents/Resources/run.sh"
+# 1B. Inject all core code inside the app bundle's resources
+APP_DIR="$APP_BUNDLE/Contents/Resources"
+rsync -aP --exclude 'venv/' --exclude '__pycache__/' programme "$APP_DIR/"
+cp -r data run.sh LICENSE README.md "$APP_DIR/"
+chmod +x "$APP_DIR/run.sh"
+
 # Copy an icon if it exists
 if [ -f "programme/src/assets/icon.icns" ]; then
-    cp "programme/src/assets/icon.icns" "$APP_DIR/4BiM.app/Contents/Resources/applet.icns"
+    cp "programme/src/assets/icon.icns" "$APP_DIR/applet.icns"
 fi
 
-rm "$APP_DIR/run.sh"
-
 pkgbuild --root "$PAYLOAD_DIR" \
-         --identifier "com.4bim.app" \
+         --identifier "com.profilex.app" \
          --version "1.0.0" \
          --install-location "/" \
-         "dist/Installers/4BiM_macOS.pkg"
+         "dist/Installers/ProfileX_macOS.pkg"
 
-echo -e "${GREEN}-> Created 4BiM_macOS.pkg successfully!${NC}"
+echo -e "${GREEN}-> Created ProfileX_macOS.pkg successfully!${NC}"
 
 # ---------------------------------------------------------
 # 2. Windows Installer (.exe)
@@ -67,5 +65,5 @@ fi
 
 makensis installer_windows.nsi
 
-echo -e "${GREEN}-> Created 4BiM_Setup_Windows.exe successfully!${NC}"
+echo -e "${GREEN}-> Created ProfileX_Setup_Windows.exe successfully!${NC}"
 echo -e "${CYAN}Done. Installers are located in dist/Installers/.${NC}"

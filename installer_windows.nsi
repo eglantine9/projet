@@ -1,9 +1,9 @@
-!define APP_NAME "4BiM"
+!define APP_NAME "ProfileX"
 !define APP_VERSION "1.0.0"
 !define APP_PUBLISHER "Nathanael Pons et al."
 
 Name "${APP_NAME}"
-OutFile "dist/Installers/4BiM_Setup_Windows.exe"
+OutFile "dist/Installers/ProfileX_Setup_Windows.exe"
 InstallDir "$PROFILE\${APP_NAME}"
 
 RequestExecutionLevel user
