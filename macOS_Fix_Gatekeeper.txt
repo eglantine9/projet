@@ -1,0 +1,7 @@
+If you are on macOS and receive a warning stating that "ProfileX.command" cannot be opened because Apple cannot check it for malicious software, this is a standard macOS security feature (Gatekeeper) for downloaded compressed files.
+
+To fix this and allow the application to run, open the Terminal application on your Mac (you can find it through Spotlight Search) and copy and paste the following command, then press Enter:
+
+xattr -d com.apple.quarantine ~/Downloads/ProfileX-v1.0/ProfileX.command
+
+After running this command, you can double-click "ProfileX.command" normally and it will open securely.

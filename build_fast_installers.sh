@@ -23,7 +23,8 @@ PAYLOAD_DIR="dist/mac_payload"
 APP_DIR="${PAYLOAD_DIR}/Applications/4BiM"
 
 mkdir -p "$APP_DIR"
-cp -r programme data run.sh LICENSE README.md "$APP_DIR"
+rsync -aP --exclude 'venv/' --exclude '__pycache__/' programme "$APP_DIR/"
+cp -r data run.sh LICENSE README.md "$APP_DIR"
 chmod +x "$APP_DIR/run.sh"
 
 # Create a simple AppleScript wrapper so it sits in Applications nicely

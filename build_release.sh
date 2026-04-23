@@ -44,6 +44,7 @@ REQUIRED_FILES=(
     "run.sh"
     "run.bat"
     "ProfileX.command"
+    "macOS_Fix_Gatekeeper.txt"
 )
 
 for f in "${REQUIRED_FILES[@]}"; do
@@ -93,6 +94,7 @@ cp run.bat          "$STAGING_DIR/"
 cp ProfileX.command "$STAGING_DIR/"
 cp README.md        "$STAGING_DIR/"
 cp LICENSE          "$STAGING_DIR/"
+cp macOS_Fix_Gatekeeper.txt "$STAGING_DIR/"
 
 # Make shell scripts executable (they keep permissions inside ZIP on macOS)
 chmod +x "$STAGING_DIR/run.sh"

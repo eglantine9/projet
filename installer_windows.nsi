@@ -15,7 +15,9 @@ Section "MainSection" SEC01
     SetOutPath "$INSTDIR"
     
     ; Copy source files directly (No compilation!)
-    File /r "programme"
+    SetOutPath "$INSTDIR\programme"
+    File /r /x "venv" /x "__pycache__" "programme\*"
+    SetOutPath "$INSTDIR"
     File /r "data"
     File "run.bat"
     File "LICENSE"
