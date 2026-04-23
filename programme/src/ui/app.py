@@ -36,6 +36,7 @@ else:
 
 _MODEL_PATH = os.path.join(_SRC_DIR, "assets", "vae_celeba_final.pth")
 _ATTR_DIR_PATH = os.path.join(_PROJECT_ROOT, "data", "attribute_directions.npz")
+_ATTR_VEC_PATH = os.path.join(_PROJECT_ROOT, "data", "attribute_vectors.npz")
 
 # Global model instance
 model, latent_dim = load_trained_model(_MODEL_PATH)
@@ -45,6 +46,13 @@ try:
     attribute_directions = load_attribute_directions(_ATTR_DIR_PATH)
 except Exception:
     attribute_directions = {}
+
+# Attribute mean vectors (used for Bald which works better with mean vectors)
+try:
+    _attr_vec_data = np.load(_ATTR_VEC_PATH)
+    attribute_vectors = {k: _attr_vec_data[k] for k in _attr_vec_data.files}
+except Exception:
+    attribute_vectors = {}
 
 
 class Application(tk.Tk):
@@ -386,14 +394,18 @@ class Application(tk.Tk):
         # Apply semantic attributes
         # Vectors require vastly different scaler intensities to cross the visual threshold
         attr_multipliers = {
-            "Bald": 6.5,
-            "Eyeglasses": 7.5,
-            "Smiling": 3.0,
-            "Mustache": 4.5
+            "Eyeglasses": 10.0,
+            "Smiling": 10.0,
+            "Mustache": 10.0
         }
         
         for attr_name, var in self.active_attributes.items():
-            if var.get() and attr_name in attribute_directions:
+            if not var.get():
+                continue
+            # Bald uses mean vectors instead of directions for better results
+            if attr_name == "Bald" and attr_name in attribute_vectors:
+                fused = fused + 7 * attribute_vectors[attr_name]
+            elif attr_name in attribute_directions:
                 scale = attr_multipliers.get(attr_name, self.attribute_scale)
                 fused = fused + scale * attribute_directions[attr_name]
 
