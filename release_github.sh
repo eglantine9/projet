@@ -12,41 +12,18 @@ NC='\033[0m'
 
 if ! command -v gh &> /dev/null; then
     echo -e "${RED}Error: GitHub CLI (gh) is not installed.${NC}"
-    echo "Install with: brew install gh"
-    exit 1
-fi
-
-if ! gh auth status &> /dev/null; then
-    echo -e "${RED}Error: Not authenticated with GitHub CLI.${NC}"
-    echo "Please run: gh auth login"
     exit 1
 fi
 
 VERSION="v1.0.0"
-NOTES="Release notes for version ${VERSION}"
 
 # Check for artifacts
-MAC_DMG="dist/Installers/4BiM_macOS.dmg"
+MAC_PKG="dist/Installers/4BiM_macOS.pkg"
 WIN_EXE="dist/Installers/4BiM_Setup_Windows.exe"
 
 ARTIFACTS=""
-if [ -f "$MAC_DMG" ]; then
-    ARTIFACTS="$ARTIFACTS $MAC_DMG"
-    echo "Found macOS DMG."
-fi
-
-if [ -f "$WIN_EXE" ]; then
-    ARTIFACTS="$ARTIFACTS $WIN_EXE"
-    echo "Found Windows Setup EXE."
-fi
-
-if [ -z "$ARTIFACTS" ]; then
-    echo -e "${RED}Warning: No installers found in dist/Installers/.${NC}"
-    read -p "Do you want to create a release without artifacts? (y/n): " choice
-    if [[ ! "$choice" =~ ^[Yy]$ ]]; then
-        exit 1
-    fi
-fi
+[ -f "$MAC_PKG" ] && ARTIFACTS="$ARTIFACTS $MAC_PKG" && echo "Found macOS PKG."
+[ -f "$WIN_EXE" ] && ARTIFACTS="$ARTIFACTS $WIN_EXE" && echo "Found Windows EXE."
 
 echo -e "${CYAN}Creating GitHub Release ${VERSION}...${NC}"
 
@@ -55,15 +32,12 @@ gh release create "$VERSION" $ARTIFACTS \
     --title "4BiM Forensic Composite Generator - $VERSION" \
     --notes "Thank you for using 4BiM.
     
-### Core Features
-- Real-time latent face fusion (10 visual generation loops).
-- Norm-Preserving Hypersphere projection technology.
-- Custom alignment GUI (CropDialog / 51% Y threshold).
-- Advanced dynamic attribute escalation limits.
+### Fast Extracting Installers!
+These installers are highly optimized. They simply extract the main modules to your computer and set everything up natively on first launch.
 
 ### Installation
-- **macOS Users:** Download \`4BiM_macOS.dmg\` and drag it to Applications.
-- **Windows Users:** Download \`4BiM_Setup_Windows.exe\` and run the wizard.
+- **macOS Users:** Download \`4BiM_macOS.pkg\` and run the package installer. It will place 4BiM in your Applications.
+- **Windows Users:** Download \`4BiM_Setup_Windows.exe\` and run the wizard. It will place a shortcut directly on your desktop.
 
 ### Credits
 Created internally by Nathanael Pons, Axel Mondesir, Ambre Lesurtel, Skander Zouhir, Eglantine Salomé (Licensed under MIT).

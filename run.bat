@@ -2,13 +2,13 @@
 setlocal enabledelayedexpansion
 chcp 65001 >nul 2>&1
 :: ============================================================================
-::  4BiM - Cross-Platform Run Script (Windows)
+::  ProfileX - Cross-Platform Run Script (Windows)
 ::  Installs prerequisites, checks for errors, and launches the application.
 :: ============================================================================
 
 echo.
 echo ╔══════════════════════════════════════════════════╗
-echo ║        4BiM - Forensic Composite Generator       ║
+echo ║        ProfileX - Forensic Composite Generator       ║
 echo ╚══════════════════════════════════════════════════╝
 echo.
 
@@ -203,7 +203,7 @@ popd
 :: ── Step 10: Launch ───────────────────────────────────────────────────────
 echo.
 echo ════════════════════════════════════════════════════
-echo   All checks passed. Launching 4BiM...
+echo   All checks passed. Launching ProfileX...
 echo ════════════════════════════════════════════════════
 echo.
 

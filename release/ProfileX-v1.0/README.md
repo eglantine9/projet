@@ -46,7 +46,7 @@ ProjetBIM/
 In a standard Gaussian VAE, linearly interpolating two faces mathematically scales the resulting tensor down, causing the output image to degenerate into a blurry structure. This system integrates **Norm-Preserving Algebraic Injection**, effectively calculating the input vector radii and snapping the fused face specifically onto the surface boundary of the hypersphere. Fusions retain 100% of parent HD structural sharpness.
 
 ### Forced Alignment Extraction (`CropDialog`)
-Any external custom image introduced to the VAE model will inherently corrupt the vector space if not identical in geometric spacing. 4BiM introduces an Interactive Mask GUI utilizing CelebA boundary laws (forcing eyes squarely onto a `51% Y` threshold limit) allowing any arbitrary imported face to encode natively and sharply.
+Any external custom image introduced to the VAE model will inherently corrupt the vector space if not identical in geometric spacing. ProfileX introduces an Interactive Mask GUI utilizing CelebA boundary laws (forcing eyes squarely onto a `51% Y` threshold limit) allowing any arbitrary imported face to encode natively and sharply.
 
 ### Dynamic Attribute Escalations
 Instead of statically pushing geometry variables across all semantics, modifiers scale dynamically representing their true physical cost. (e.g. `Baldness` requires a `6.5x` latent push to completely empty the hair coordinate plane compared to `3.0x` for `Smiling`).

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================================
-#  4BiM - Cross-Platform Run Script (macOS / Linux)
+#  ProfileX - Cross-Platform Run Script (macOS / Linux)
 #  Installs prerequisites, checks for errors, and launches the application.
 # ============================================================================
 set -euo pipefail
@@ -27,7 +27,7 @@ MAIN_PY="$PROJECT_ROOT/programme/main.py"
 
 echo ""
 echo -e "${BOLD}╔══════════════════════════════════════════════════╗${NC}"
-echo -e "${BOLD}║        4BiM - Forensic Composite Generator      ║${NC}"
+echo -e "${BOLD}║        ProfileX - Forensic Composite Generator      ║${NC}"
 echo -e "${BOLD}╚══════════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -185,7 +185,7 @@ cd "$PROJECT_ROOT"
 # ── Step 10: Launch ─────────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}════════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}${BOLD}  All checks passed. Launching 4BiM...${NC}"
+echo -e "${GREEN}${BOLD}  All checks passed. Launching ProfileX...${NC}"
 echo -e "${BOLD}════════════════════════════════════════════════════${NC}"
 echo ""
 
