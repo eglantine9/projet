@@ -23,20 +23,20 @@ import sys
 
 # Determine path resolution for normal execution vs PyInstaller
 if getattr(sys, 'frozen', False):
-    import sys
-    _UI_DIR = os.path.dirname(os.path.abspath(__file__))
-    _SRC_DIR = os.path.dirname(_UI_DIR)
-    # _MEIPASS has the bundled contents.
-    _EXEC_DIR = os.path.dirname(sys.executable)
-    _PROJECT_ROOT = _EXEC_DIR
+    # PyInstaller extracts code to sys._MEIPASS (Contents/Frameworks in .app)
+    # but BUNDLE copies datas to Contents/Resources — check both locations.
+    _MEIPASS = sys._MEIPASS
+    _RESOURCES = os.path.join(os.path.dirname(_MEIPASS), "Resources")
+    # Prefer Resources (where BUNDLE puts datas), fall back to _MEIPASS
+    _BUNDLE_DIR = _RESOURCES if os.path.isdir(_RESOURCES) else _MEIPASS
 else:
     _UI_DIR = os.path.dirname(os.path.abspath(__file__))
     _SRC_DIR = os.path.dirname(_UI_DIR)
-    _PROJECT_ROOT = os.path.dirname(os.path.dirname(_SRC_DIR))
+    _BUNDLE_DIR = os.path.dirname(os.path.dirname(_SRC_DIR))
 
-_MODEL_PATH = os.path.join(_SRC_DIR, "assets", "vae_celeba_final.pth")
-_ATTR_DIR_PATH = os.path.join(_PROJECT_ROOT, "data", "attribute_directions.npz")
-_ATTR_VEC_PATH = os.path.join(_PROJECT_ROOT, "data", "attribute_vectors.npz")
+_MODEL_PATH = os.path.join(_BUNDLE_DIR, "programme", "src", "assets", "vae_celeba_final.pth")
+_ATTR_DIR_PATH = os.path.join(_BUNDLE_DIR, "data", "attribute_directions.npz")
+_ATTR_VEC_PATH = os.path.join(_BUNDLE_DIR, "data", "attribute_vectors.npz")
 
 # Global model instance
 model, latent_dim = load_trained_model(_MODEL_PATH)
@@ -332,7 +332,7 @@ class Application(tk.Tk):
     # ── Business Logic ───────────────────────────────────────────────────
 
     def load_sample(self):
-        celeba_dir = os.path.abspath(os.path.join(_PROJECT_ROOT, "data", "celeba", "img_align_celeba"))
+        celeba_dir = os.path.join(_BUNDLE_DIR, "data", "celeba", "img_align_celeba")
         
         try:
             # We assume images are mostly .jpg in that directory
@@ -392,22 +392,20 @@ class Application(tk.Tk):
                 fused = fuse_parents(latent)
 
         # Apply semantic attributes
-        # Vectors require vastly different scaler intensities to cross the visual threshold
-        attr_multipliers = {
-            "Eyeglasses": 10.0,
-            "Smiling": 10.0,
-            "Mustache": 10.0
+        # Each entry: (scale, source_dict)
+        # Bald uses mean vectors; others use direction vectors
+        attr_config = {
+            "Bald":       (7.0,  attribute_vectors),
+            "Eyeglasses": (10.0, attribute_directions),
+            "Smiling":    (10.0, attribute_directions),
+            "Mustache":   (10.0, attribute_directions),
         }
-        
+
         for attr_name, var in self.active_attributes.items():
-            if not var.get():
-                continue
-            # Bald uses mean vectors instead of directions for better results
-            if attr_name == "Bald" and attr_name in attribute_vectors:
-                fused = fused + 7 * attribute_vectors[attr_name]
-            elif attr_name in attribute_directions:
-                scale = attr_multipliers.get(attr_name, self.attribute_scale)
-                fused = fused + scale * attribute_directions[attr_name]
+            if var.get() and attr_name in attr_config:
+                scale, source = attr_config[attr_name]
+                if attr_name in source:
+                    fused = fused + scale * source[attr_name]
 
         # Decode fused result
         fused_result = decode_latents(model, fused).squeeze(1)

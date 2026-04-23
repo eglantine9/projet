@@ -22,3 +22,6 @@ ENV/
 
 # Build artifacts
 executables/
+dist/
+build/
+*.spec
