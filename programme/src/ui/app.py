@@ -82,7 +82,7 @@ class Application(tk.Tk):
             "Smiling": tk.BooleanVar(value=False),
             "Mustache": tk.BooleanVar(value=False),
         }
-        self.attribute_scale = 3.0  # ~10% of typical latent norm (~29)
+
 
         self.root_frame = tk.Frame(self, bg=BG_MAIN)
         self.root_frame.pack(fill="both", expand=True)
