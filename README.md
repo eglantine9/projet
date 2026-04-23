@@ -1,4 +1,4 @@
-# ProfileX - Interactive Forensic Composite Generator
+# ProfileX 
 
 **Authors**: Nathanael Pons, Axel Mondesir, Ambre Lesurtel, Skander Zouhir, Eglantine Salomé
 
