@@ -1,10 +1,10 @@
-# 4BiM - Interactive Forensic Composite Generator
+# ProfileX - Interactive Forensic Composite Generator
 
 **Authors**: Nathanael Pons, Axel Mondesir, Ambre Lesurtel, Skander Zouhir, Eglantine Salomé
 
 ## Overview
 
-4BiM is a highly interactive application that visually reconstructs human faces via a **Conditional Variational Autoencoder (CVAE)** intertwined with a **Genetic Algorithm**. The software renders 10 real-time latent samples for the user, allowing them to explicitly fuse biological geometry and apply severe semantic variations iteratively until a perfect facial reconstruction is achieved.
+ProfileX is a highly interactive application that visually reconstructs human faces via a **Conditional Variational Autoencoder (CVAE)** intertwined with a **Genetic Algorithm**. The software renders 10 real-time latent samples for the user, allowing them to explicitly fuse biological geometry and apply severe semantic variations iteratively until a perfect facial reconstruction is achieved.
 
 ## System Architecture
 
